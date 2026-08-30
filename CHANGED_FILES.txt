@@ -1,6 +1,1 @@
-Good Cause Nepal Relief Message Final Fix
-
-Changed file:
-app/campaigns/[slug]/page.tsx
-
-Public wording only. No Stripe, webhook, donation, Supabase, payout, API, or admin logic changed.
+components/DonatePanel.tsx

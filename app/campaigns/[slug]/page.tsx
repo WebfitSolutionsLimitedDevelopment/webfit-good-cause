@@ -37,6 +37,8 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
         {c.story.replace(/\\n/g,'\n').split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map((p,i)=><p key={i}>{p}</p>)}
       </section>
 
+      {slug==='nepal-flash-flood-relief-2026'&&<section className="campaign-section transparency-note"><h2>Where your support will go</h2><p>Funds raised through this appeal will be allocated to the Nepal Relief Fund. Once the appeal is completed and the funds are handed over, Good Cause will publish an update on this page confirming the final amount raised and the amount transferred to the relief fund.</p></section>}
+
       {c.beneficiaryVerified && c.beneficiary && <section className="campaign-section">
         <h2>Beneficiary</h2>
         <p>{c.beneficiary}</p>

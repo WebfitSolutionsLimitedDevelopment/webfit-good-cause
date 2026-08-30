@@ -1,0 +1,2 @@
+import Link from 'next/link';
+export function AdminNav(){return <nav className="admin-nav"><Link href="/admin">Overview</Link><Link href="/admin/campaigns">Campaigns</Link><Link href="/admin/reviews">Reviews</Link><Link href="/admin/users">Users</Link><Link href="/admin/donations">Donations</Link><Link href="/admin/payouts">Payouts</Link><Link href="/admin/reports">Reports</Link><Link href="/admin/notifications">Notifications</Link><Link href="/admin/audit">Audit log</Link></nav>}

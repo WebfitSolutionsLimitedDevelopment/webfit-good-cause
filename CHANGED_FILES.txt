@@ -1,0 +1,6 @@
+Changed files:
+components/Header.tsx
+components/DonatePanel.tsx
+lib/public-campaigns.ts
+app/campaigns/[slug]/page.tsx
+app/globals.css

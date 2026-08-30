@@ -20,6 +20,7 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
   const updates=updatesData??[];
   const media=mediaData??[];
   const cover=media.find((m:any)=>m.kind==='image'&&m.is_primary);
+  const galleryMedia=media.filter((m:any)=>m.id!==cover?.id);
 
   return <div className="shell campaign-detail">
     <article className="campaign-main">
@@ -31,29 +32,21 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
 
       {cover?<div className="campaign-cover"><img src={`/api/media/${cover.id}`} alt={cover.title}/><div className="campaign-chip">{c.category}</div></div>:slug==='nepal-flash-flood-relief-2026'?<div className="campaign-cover"><img src="/campaigns/nepal-flash-flood-relief-2026.png" alt="Flood damage in Nepal"/><div className="campaign-chip">{c.category}</div></div>:<div className="campaign-hero-art nepal-visual large"><div className="mountain mountain-one"></div><div className="mountain mountain-two"></div><div className="river"></div><div className="campaign-chip">{c.category}</div></div>}
 
-      <div className={`verification-banner ${c.beneficiaryVerified&&c.payoutVerified?'complete':'in-progress'}`}>
-        <div><strong>Campaign approved by Good Cause</strong><span>Campaign information has been reviewed and donations are enabled.</span></div>
-        {c.beneficiaryVerified&&c.payoutVerified
-          ? <small>Payout verification complete</small>
-          : <small>Funds remain subject to beneficiary and payout verification before release</small>}
-      </div>
-
       <section className="campaign-section">
         <h2>About this cause</h2>
-        {c.story.split('\n').filter(Boolean).map((p,i)=><p key={i}>{p}</p>)}
+        {c.story.replace(/\\n/g,'\n').split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map((p,i)=><p key={i}>{p}</p>)}
       </section>
 
-      <section className="campaign-section">
+      {c.beneficiaryVerified && c.beneficiary && <section className="campaign-section">
         <h2>Beneficiary</h2>
         <p>{c.beneficiary}</p>
-        {!c.beneficiaryVerified && <p className="campaign-disclosure">Good Cause will complete beneficiary verification before campaign funds are released.</p>}
-      </section>
+      </section>}
 
       {slug==='nepal-flash-flood-relief-2026'&&<section className="campaign-section"><h2>Independent humanitarian sources</h2><div className="source-list"><a href="https://www.unicef.org/nepal" target="_blank" rel="noreferrer">UNICEF Nepal</a><a href="https://www.ifrc.org/where-we-work/asia-pacific/nepal" target="_blank" rel="noreferrer">IFRC Nepal</a></div><p className="fineprint">Good Cause is not affiliated with these organisations unless expressly stated. These links are provided as independent humanitarian references.</p></section>}
 
       <section className="campaign-section">
         <h2>Campaign media and references</h2>
-        {media.length? <div className="campaign-media-grid">{media.map((m:any)=><div className="media-card" key={m.id}>{m.kind==='image'?<img src={`/api/media/${m.id}`} alt={m.title}/>:<a className="text-link" href={m.url||'#'} target="_blank" rel="noreferrer">{m.title}</a>}<div><strong>{m.title}</strong><small>{m.kind}</small></div></div>)}</div>:<p className="muted">No additional campaign media has been published yet.</p>}
+        {galleryMedia.length? <div className="campaign-media-grid">{galleryMedia.map((m:any)=><div className="media-card" key={m.id}>{m.kind==='image'?<img src={`/api/media/${m.id}`} alt={m.title}/>:<a className="text-link" href={m.url||'#'} target="_blank" rel="noreferrer">{m.title}</a>}<div><strong>{m.title}</strong><small>{m.kind}</small></div></div>)}</div>:<p className="muted">No additional campaign media has been published yet.</p>}
       </section>
 
       <section className="campaign-section">
@@ -73,13 +66,6 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
         <div className="muted">{c.goal>0?`raised toward ${money(c.goal)}`:'raised'}</div>
         {c.goal>0&&<><div className="progress"><i style={{width:`${pct}%`}}/></div><div className="card-meta"><span>{c.donors} supporters</span><span>{pct}% of goal</span></div></>}
         {c.lastContributor&&<div className="latest-contribution"><span>Latest contribution</span><strong>{c.lastContributor}</strong></div>}
-      </div>
-
-      <div className="trust-status-list">
-        <div className="trust-status ok"><span>Campaign</span><strong>Approved</strong></div>
-        <div className={`trust-status ${c.beneficiaryVerified?'ok':'pending'}`}><span>Beneficiary</span><strong>{c.beneficiaryVerified?'Verified':'Verification before payout'}</strong></div>
-        <div className={`trust-status ${c.payoutVerified?'ok':'pending'}`}><span>Payout destination</span><strong>{c.payoutVerified?'Verified':'Required before release'}</strong></div>
-        <div className="trust-status ok"><span>Fees</span><strong>Disclosed</strong></div>
       </div>
 
       <DonatePanel campaignSlug={c.slug} enabled={SITE.paymentsEnabled}/>

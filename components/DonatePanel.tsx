@@ -40,6 +40,6 @@ export function DonatePanel({campaignSlug, enabled}:{campaignSlug:string; enable
     <label className="donor-privacy-check"><input type="checkbox" checked={anonymous} onChange={e=>setAnonymous(e.target.checked)}/><span><strong>Hide my name publicly</strong><small>Your name is still recorded securely for the contribution receipt and payment records. Public campaign activity will show “Anonymous supporter”.</small></span></label>
     <button className="button donate-button" type="submit" disabled={loading||!valid}>{loading?'Opening secure checkout...':'Continue to secure payment'}</button>
     {error&&<p className="form-error">{error}</p>}
-    <p className="fineprint">You pay the amount you choose. Good Cause deducts its 2.5% platform fee and the actual applicable Stripe processing cost. The remaining amount is recorded for the campaign and is released only after the required payout checks are completed. A contribution receipt is emailed after successful payment.</p>
+    <p className="fineprint">You pay the amount you choose. Good Cause deducts its 2.5% platform fee and the actual applicable Stripe processing cost from the donation. A contribution receipt is emailed after successful payment.</p>
   </form>;
 }

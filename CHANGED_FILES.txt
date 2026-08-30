@@ -1,6 +1,17 @@
-Changed files:
-components/Header.tsx
-components/DonatePanel.tsx
-lib/public-campaigns.ts
-app/campaigns/[slug]/page.tsx
-app/globals.css
+Good Cause live public cleanup
+
+Changed files only:
+- app/campaigns/[slug]/page.tsx
+- components/DonatePanel.tsx
+- lib/public-campaigns.ts
+
+Public-facing cleanup:
+- removes internal campaign approval / payout verification banner
+- removes beneficiary and payout readiness status rows from donation sidebar
+- hides beneficiary section until beneficiary verification is complete
+- removes internal payout-control wording from donation disclosure
+- stops public campaign loader from selecting bank/payout verification fields
+- prevents the primary cover image from being duplicated in the media gallery
+- normalizes campaign story paragraph breaks
+
+No Stripe API, webhook, donation creation, payout, database schema, route, or admin workflow logic is changed.

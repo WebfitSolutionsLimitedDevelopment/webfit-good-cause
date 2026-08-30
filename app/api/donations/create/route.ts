@@ -9,6 +9,21 @@ function clean(value: unknown, max = 180) {
   return String(value ?? '').trim().slice(0, max);
 }
 
+function getPublicOrigin(req: NextRequest) {
+  const configured = String(process.env.NEXT_PUBLIC_SITE_URL || '').trim();
+  if (configured && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(configured)) {
+    return configured.replace(/\/$/, '');
+  }
+
+  const forwardedHost = req.headers.get('x-forwarded-host');
+  const host = forwardedHost || req.headers.get('host');
+  const forwardedProto = req.headers.get('x-forwarded-proto');
+  const protocol = forwardedProto || (host?.includes('localhost') ? 'http' : 'https');
+
+  if (host) return `${protocol}://${host}`;
+  return 'https://goodcause.webfitnews.co.nz';
+}
+
 export async function POST(req: NextRequest) {
   try {
     if (!SITE.paymentsEnabled) {
@@ -62,11 +77,12 @@ export async function POST(req: NextRequest) {
     }
 
     const amountCents = Math.round(amount * 100);
+    const publicOrigin = getPublicOrigin(req);
     const stripe = new Stripe(key);
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      success_url: `${SITE.url}/donation/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${SITE.url}/campaigns/${campaign.slug}`,
+      success_url: `${publicOrigin}/donation/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${publicOrigin}/campaigns/${campaign.slug}`,
       customer_creation: 'always',
       customer_email: donorEmail,
       billing_address_collection: 'auto',

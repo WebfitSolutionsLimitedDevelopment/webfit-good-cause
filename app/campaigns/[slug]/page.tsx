@@ -39,6 +39,52 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
 
       {slug==='nepal-flash-flood-relief-2026'&&<section className="campaign-section transparency-note"><h2>Where your support will go</h2><p>Funds raised through this appeal will be allocated to the Nepal Relief Fund. Once the appeal is completed and the funds are handed over, Good Cause will publish an update on this page confirming the final amount raised and the amount transferred to the relief fund.</p></section>}
 
+      {slug==='one-more-gift-2026'&&<>
+        <section className="campaign-section transparency-note">
+          <h2>Your Christmas list has room for one more.</h2>
+          <p>You may never know their name. They may never know yours. But somewhere this Christmas, a child could open something special because you decided there was room for one more.</p>
+        </section>
+
+        <section className="campaign-section">
+          <h2>How One More Gift works</h2>
+          <p>One More Gift is a national community Christmas appeal. Instead of collecting physical presents, the campaign brings together contributions from individuals, families, businesses and communities across New Zealand.</p>
+          <p>Money raised through the appeal will be distributed to approved charities and established community organisations that already know the children and families they support. Depending on local needs, funding may be used for Christmas gifts, books, sporting equipment, food, supermarket vouchers, gift cards or other agreed Christmas support.</p>
+          <p><strong>We collect money, not toys.</strong> This allows local organisations to provide appropriate support with dignity and without creating unnecessary storage, transport or gift-matching problems.</p>
+        </section>
+
+        <section className="campaign-section">
+          <h2>Give whatever feels right</h2>
+          <p>There is no correct amount. You can give NZ$2, NZ$5, NZ$10, NZ$20, NZ$50 or whatever is comfortable for you, up to NZ$2,000 through this campaign.</p>
+          <p>A small donation is not a small act. If thousands of us give a little, together we can create something extraordinary.</p>
+        </section>
+
+        <section className="campaign-section">
+          <h2>Pass Christmas On</h2>
+          <p>Registered charities and established community organisations supporting children and families will be able to apply to become One More Gift distribution partners.</p>
+          <p>Approved partners and the amounts distributed to them will be publicly disclosed as part of the campaign transparency reporting. We will not promise a specific number of children before participating organisations confirm their actual needs and costs.</p>
+        </section>
+
+        <section className="campaign-section">
+          <h2>Businesses, schools and community groups</h2>
+          <p>Businesses, schools, workplaces, restaurants, supermarkets, churches, temples, gurdwaras, mosques, sports clubs, cultural groups, professional associations and community events can all take part.</p>
+          <p>Participating organisations can share the campaign and use a campaign QR code to help their communities contribute directly to One More Gift.</p>
+        </section>
+
+        <section className="campaign-section transparency-note">
+          <h2>Our promise to donors</h2>
+          <p>Good Cause will publish a full campaign update after the appeal is completed. It will show how much was raised, how much was distributed, which approved organisations received funding and the outcomes reported by participating organisations.</p>
+          <p>100% of net donations received by the appeal will be distributed to approved community partners.</p>
+          <p><strong>You gave the money. You deserve to know where it went.</strong></p>
+        </section>
+
+        <section className="campaign-section">
+          <h2>One more gift. One more smile.</h2>
+          <p>One community making Christmas brighter together.</p>
+          <p><strong>Add one more child to your Christmas list.</strong></p>
+          <p>#OneMoreGiftNZ</p>
+        </section>
+      </>}
+
       {c.beneficiaryVerified && c.beneficiary && <section className="campaign-section">
         <h2>Beneficiary</h2>
         <p>{c.beneficiary}</p>
@@ -48,7 +94,7 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
 
       <section className="campaign-section">
         <h2>Campaign media and references</h2>
-        {slug==='nepal-flash-flood-relief-2026'&&<div className="source-list"><a href="https://webfitnews.com/nepal-flood-crisis-deepens-new-lake-raises-fresh-risk-hundreds-still-missing" target="_blank" rel="noreferrer">News Article: Nepal flood crisis deepens as new lake raises fresh risk</a><a href="https://webfitnews.com/five-new-zealanders-reported-missing-after-deadly-nepal-tibet-border-flood" target="_blank" rel="noreferrer">News Article: Five New Zealanders reported missing after deadly Nepal-Tibet border flood</a></div>}
+        {slug==='nepal-flash-flood-relief-2026'&&<div className="source-list"><a href="https://webfitnews.com/nepal-flood-crisis-deepens-new-lake-raises-fresh-risk-hundreds-still-missing" target="_blank" rel="noreferrer">Good read: Nepal flood crisis deepens as new lake raises fresh risk</a><a href="https://webfitnews.com/five-new-zealanders-reported-missing-after-deadly-nepal-tibet-border-flood" target="_blank" rel="noreferrer">Good read: Five New Zealanders reported missing after deadly Nepal-Tibet border flood</a></div>}
         {galleryMedia.length? <div className="campaign-media-grid">{galleryMedia.map((m:any)=><div className="media-card" key={m.id}>{m.kind==='image'?<img src={`/api/media/${m.id}`} alt={m.title}/>:<a className="text-link" href={m.url||'#'} target="_blank" rel="noreferrer">{m.title}</a>}<div><strong>{m.title}</strong><small>{m.kind}</small></div></div>)}</div>:slug==='nepal-flash-flood-relief-2026'?null:<p className="muted">No additional campaign media has been published yet.</p>}
       </section>
 

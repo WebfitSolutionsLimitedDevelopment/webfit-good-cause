@@ -1,6 +1,3 @@
-lib/email.ts
-lib/notifications.ts
-lib/process-paid-session.ts
-app/contact/page.tsx
-app/complaints/page.tsx
-app/report/page.tsx
+components/DonatePanel.tsx
+app/campaigns/[slug]/page.tsx
+sql/one_more_gift_2026.sql

@@ -19,7 +19,8 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
   ]);
   const updates=updatesData??[];
   const media=mediaData??[];
-  const cover=media.find((m:any)=>m.kind==='image'&&m.is_primary);
+  const imageMedia=media.filter((m:any)=>m.kind==='image');
+  const cover=imageMedia.find((m:any)=>m.is_primary) ?? imageMedia[0] ?? null;
   const galleryMedia=media.filter((m:any)=>m.id!==cover?.id);
 
   return <div className="shell campaign-detail">

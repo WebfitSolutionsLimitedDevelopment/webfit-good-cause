@@ -23,7 +23,10 @@ export async function requireStaff(allowed: AppRole[] = ['reviewer','finance','a
   if (!current) redirect('/admin/login');
   const role = current.profile?.role as AppRole | undefined;
   if (!role || !allowed.includes(role)) redirect('/dashboard');
-  if (process.env.ADMIN_MFA_REQUIRED !== 'false') {
+  // Super admins already have an authenticated application session. Do not interrupt
+  // their CMS/admin workflow with a second enrolment screen. MFA remains available
+  // for other staff roles when ADMIN_MFA_REQUIRED is enabled.
+  if (role !== 'super_admin' && process.env.ADMIN_MFA_REQUIRED !== 'false') {
     const supabase = await createServerSupabaseClient();
     const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (data?.currentLevel !== 'aal2') redirect('/admin/mfa');

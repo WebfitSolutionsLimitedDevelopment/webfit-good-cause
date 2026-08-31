@@ -15,11 +15,10 @@ export type PublicCampaign = {
   beneficiary: string;
   beneficiaryVerified: boolean;
   lastContributor: string | null;
+  coverMediaId: string | null;
 };
 
 export async function getPublicCampaigns(): Promise<PublicCampaign[]> {
-  // Donation totals must always come from Supabase at request time.
-  // This prevents Next.js from serving a stale statically rendered campaign total.
   noStore();
   const s = createServiceClient();
   const { data: rowsData } = await s
@@ -29,40 +28,55 @@ export async function getPublicCampaigns(): Promise<PublicCampaign[]> {
     .order('published_at', { ascending: false });
 
   const rows = rowsData ?? [];
-  const out: PublicCampaign[] = [];
+  if (!rows.length) return [];
 
-  for (const c of rows as any[]) {
-    const { data: dData } = await s
-      .from('donations')
-      .select('amount_cents,donor_display_name,anonymous,created_at')
-      .eq('campaign_id', c.id)
-      .eq('status', 'succeeded')
-      .order('created_at', { ascending: false });
+  const ids = (rows as any[]).map((c:any)=>c.id);
+  const [{data:donationRows},{data:mediaRows}] = await Promise.all([
+    s.from('donations')
+      .select('campaign_id,amount_cents,donor_display_name,anonymous,created_at')
+      .in('campaign_id',ids)
+      .eq('status','succeeded')
+      .order('created_at',{ascending:false}),
+    s.from('campaign_media')
+      .select('id,campaign_id,is_primary,created_at')
+      .in('campaign_id',ids)
+      .eq('kind','image')
+      .eq('status','approved')
+      .order('created_at',{ascending:false})
+  ]);
 
-    const d = dData ?? [];
-    const latest = d[0];
-    const beneficiaryVerified = c.beneficiaries?.identity_status === 'verified' && c.beneficiaries?.consent_status === 'verified';
-    out.push({
-      id: c.id,
-      slug: c.slug,
-      title: c.title,
-      summary: c.summary,
-      story: c.story,
-      category: c.category,
-      location: c.location || '',
-      raised: d.reduce((a: number, x: any) => a + Number(x.amount_cents || 0), 0) / 100,
-      goal: Number(c.target_cents || 0) / 100,
-      donors: d.length,
-      beneficiary: beneficiaryVerified ? (c.beneficiaries?.display_name || 'Verified beneficiary') : '',
-      beneficiaryVerified,
-      lastContributor: latest ? (latest.anonymous ? 'Anonymous supporter' : latest.donor_display_name || 'Supporter') : null
-    });
+  const donationsByCampaign = new Map<string,any[]>();
+  for (const d of donationRows ?? []) {
+    const list=donationsByCampaign.get((d as any).campaign_id)??[];
+    list.push(d); donationsByCampaign.set((d as any).campaign_id,list);
+  }
+  const mediaByCampaign = new Map<string,any[]>();
+  for (const m of mediaRows ?? []) {
+    const list=mediaByCampaign.get((m as any).campaign_id)??[];
+    list.push(m); mediaByCampaign.set((m as any).campaign_id,list);
   }
 
-  return out;
+  return (rows as any[]).map((c:any)=>{
+    const d=donationsByCampaign.get(c.id)??[];
+    const latest=d[0];
+    const media=mediaByCampaign.get(c.id)??[];
+    const cover=media.find((m:any)=>m.is_primary) ?? media[0] ?? null;
+    const beneficiaryVerified=c.beneficiaries?.identity_status==='verified'&&c.beneficiaries?.consent_status==='verified';
+    return {
+      id:c.id, slug:c.slug, title:c.title, summary:c.summary, story:c.story,
+      category:c.category, location:c.location||'',
+      raised:d.reduce((a:number,x:any)=>a+Number(x.amount_cents||0),0)/100,
+      goal:Number(c.target_cents||0)/100,
+      donors:d.length,
+      beneficiary:beneficiaryVerified?(c.beneficiaries?.display_name||'Verified beneficiary'):'',
+      beneficiaryVerified,
+      lastContributor:latest?(latest.anonymous?'Anonymous supporter':latest.donor_display_name||'Supporter'):null,
+      coverMediaId:cover?.id||null
+    };
+  });
 }
 
-export async function getPublicCampaign(slug: string) {
-  const all = await getPublicCampaigns();
-  return all.find(x => x.slug === slug) || null;
+export async function getPublicCampaign(slug:string){
+  const all=await getPublicCampaigns();
+  return all.find(x=>x.slug===slug)||null;
 }

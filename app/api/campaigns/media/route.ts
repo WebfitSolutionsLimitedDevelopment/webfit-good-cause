@@ -36,3 +36,28 @@ export async function POST(request:Request){
   }
   return NextResponse.json({ok:true,message:isSuperAdmin?'Media published successfully.':'Media submitted for admin approval.'});
 }
+
+export async function PATCH(request:Request){
+  const auth=await createServerSupabaseClient();
+  const {data:{user}}=await auth.auth.getUser();
+  if(!user)return NextResponse.json({error:'Unauthorised'},{status:401});
+  const body=await request.json().catch(()=>null) as any;
+  const campaignId=String(body?.campaignId||'');
+  const mediaId=String(body?.mediaId||'');
+  if(!campaignId||!mediaId||body?.action!=='set_primary')return NextResponse.json({error:'Invalid request.'},{status:400});
+  const service=createServiceClient();
+  const [{data:profile},{data:campaign},{data:media}]=await Promise.all([
+    service.from('profiles').select('role').eq('id',user.id).maybeSingle(),
+    service.from('campaigns').select('id,owner_id').eq('id',campaignId).maybeSingle(),
+    service.from('campaign_media').select('id,campaign_id,kind,status').eq('id',mediaId).maybeSingle()
+  ]);
+  const isSuperAdmin=profile?.role==='super_admin';
+  if(!campaign||(campaign.owner_id!==user.id&&!isSuperAdmin))return NextResponse.json({error:'Forbidden'},{status:403});
+  if(!media||media.campaign_id!==campaignId||media.kind!=='image'||media.status!=='approved')return NextResponse.json({error:'Choose an approved campaign image.'},{status:400});
+  if(!isSuperAdmin)return NextResponse.json({error:'Only a super admin can change the main image on a live campaign.'},{status:403});
+  await service.from('campaign_media').update({is_primary:false}).eq('campaign_id',campaignId).eq('kind','image');
+  const {error}=await service.from('campaign_media').update({is_primary:true}).eq('id',mediaId);
+  if(error)return NextResponse.json({error:error.message},{status:400});
+  await service.from('audit_events').insert({actor_user_id:user.id,campaign_id:campaignId,event_type:'campaign_cover_changed',entity_type:'campaign_media',entity_id:mediaId,metadata:{direct_publish:true}});
+  return NextResponse.json({ok:true,message:'Main campaign image updated.'});
+}

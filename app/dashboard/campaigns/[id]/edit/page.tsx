@@ -1,20 +1,20 @@
 import { notFound,redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { requireUser } from '@/lib/auth';
+import { requireUser, canManageCampaign } from '@/lib/auth';
 import { createServiceClient } from '@/lib/supabase-server';
 import { notifyAdmins } from '@/lib/notifications';
 
 export default async function Page({params}:{params:Promise<{id:string}>}){
-  const {id}=await params;const {user,profile}=await requireUser();const s=createServiceClient();const isSuperAdmin=profile?.role==='super_admin';
+  const {id}=await params;const {user,profile}=await requireUser();const s=createServiceClient();const isSuperAdmin=profile?.role==='super_admin';const canSeeAll=canManageCampaign(profile?.role);
   let campaignQuery=s.from('campaigns').select('*,beneficiaries(display_name,legal_name,country_code),payment_destinations(account_holder_name,bank_name,bank_account_number)').eq('id',id);
-  if(!isSuperAdmin)campaignQuery=campaignQuery.eq('owner_id',user.id);
+  if(!canSeeAll)campaignQuery=campaignQuery.eq('owner_id',user.id);
   const {data:c}=await campaignQuery.maybeSingle();if(!c)notFound();
   const {data:pendingData}=isSuperAdmin?{data:[]}:await s.from('campaign_change_requests').select('*').eq('campaign_id',id).eq('status','pending').order('created_at',{ascending:false});const pending=pendingData??[];
 
   async function save(formData:FormData){
-    'use server';const {user,profile}=await requireUser();const db=createServiceClient();const isSuperAdmin=profile?.role==='super_admin';
+    'use server';const {user,profile}=await requireUser();const db=createServiceClient();const isSuperAdmin=profile?.role==='super_admin';const canSeeAll=canManageCampaign(profile?.role);
     let existingQuery=db.from('campaigns').select('*,beneficiaries(display_name,legal_name,country_code),payment_destinations(account_holder_name,bank_name,bank_account_number)').eq('id',id);
-    if(!isSuperAdmin)existingQuery=existingQuery.eq('owner_id',user.id);
+    if(!canSeeAll)existingQuery=existingQuery.eq('owner_id',user.id);
     const {data:existing}=await existingQuery.maybeSingle();if(!existing)return;
     const campaignPatch={title:String(formData.get('title')||'').trim(),summary:String(formData.get('summary')||'').trim(),story:String(formData.get('story')||'').trim(),category:String(formData.get('category')||'').trim(),location:String(formData.get('location')||'').trim(),target_cents:Math.max(100,Math.round(Number(formData.get('target')||0)*100))};
     const beneficiaryPatch={display_name:String(formData.get('beneficiary')||'').trim(),legal_name:String(formData.get('beneficiaryLegal')||'').trim(),country_code:String(formData.get('beneficiaryCountry')||'NZ').trim().toUpperCase()};

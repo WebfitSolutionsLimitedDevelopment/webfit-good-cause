@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { requireUser } from '@/lib/auth';
+import { requireUser, canManageCampaign } from '@/lib/auth';
 import { createServiceClient } from '@/lib/supabase-server';
 import { DocumentUploader } from '@/components/dashboard/DocumentUploader';
 import { MediaManager } from '@/components/dashboard/MediaManager';
 
 export default async function Page({params}:{params:Promise<{id:string}>}){
-  const {id}=await params;const {user,profile}=await requireUser();const s=createServiceClient();const isSuperAdmin=profile?.role==='super_admin';
+  const {id}=await params;const {user,profile}=await requireUser();const s=createServiceClient();const isSuperAdmin=profile?.role==='super_admin';const canSeeAll=canManageCampaign(profile?.role);
   let campaignQuery=s.from('campaigns').select('*, beneficiaries(display_name,consent_status,identity_status), payment_destinations(account_holder_name,verification_status)').eq('id',id);
-  if(!isSuperAdmin)campaignQuery=campaignQuery.eq('owner_id',user.id);
+  if(!canSeeAll)campaignQuery=campaignQuery.eq('owner_id',user.id);
   const {data:c}=await campaignQuery.maybeSingle();if(!c)notFound();
   const [{data:checksData},{data:docsData},{data:changeData},{data:queryData},{data:mediaData}]=await Promise.all([
     s.from('compliance_checks').select('*').eq('campaign_id',id).order('created_at'),

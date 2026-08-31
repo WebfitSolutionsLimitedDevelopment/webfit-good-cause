@@ -1,10 +1,1 @@
-app/page.tsx
 app/globals.css
-app/campaigns/[slug]/page.tsx
-app/dashboard/page.tsx
-app/dashboard/campaigns/[id]/page.tsx
-app/api/campaigns/media/route.ts
-components/CampaignCard.tsx
-components/dashboard/MediaCoverActions.tsx
-lib/public-campaigns.ts
-lib/auth.ts

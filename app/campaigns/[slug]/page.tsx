@@ -38,7 +38,7 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
         {c.story.replace(/\\n/g,'\n').split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean).map((p,i)=><p key={i}>{p}</p>)}
       </section>
 
-      {slug==='nepal-flash-flood-relief-2026'&&<section className="campaign-section transparency-note"><h2>Where your support will go</h2><p>Funds raised through this appeal will be allocated to the Nepal Relief Fund. Once the appeal is completed and the funds are handed over, Good Cause will publish an update on this page confirming the final amount raised and the amount transferred to the relief fund.</p></section>}
+      {slug==='nepal-flash-flood-relief-2026'&&<section className="campaign-section transparency-note"><h2>Where your support will go</h2><p>Funds collected through this appeal will be accumulated by Good Cause and, once the appeal closes, the net amount available for distribution will be transferred to the Government of Nepal's Prime Minister's Disaster Relief Fund, administered through the Office of the Prime Minister and Council of Ministers.</p><p>Good Cause will publish a final update on this campaign page confirming the total amount raised, the amount transferred and confirmation that the transfer has been completed.</p><p className="fineprint">Prefer to contribute directly to the Government of Nepal fund? <a href="https://pmdrf.nchl.com.np/" target="_blank" rel="noreferrer">Official Prime Minister's Disaster Relief Fund donation portal</a>.</p></section>}
 
       {slug==='one-more-gift-2026'&&<>
         <section className="campaign-section transparency-note">

@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from 'next/cache';
 import { createServiceClient } from './supabase-server';
 
 export type PublicCampaign = {
@@ -17,6 +18,9 @@ export type PublicCampaign = {
 };
 
 export async function getPublicCampaigns(): Promise<PublicCampaign[]> {
+  // Donation totals must always come from Supabase at request time.
+  // This prevents Next.js from serving a stale statically rendered campaign total.
+  noStore();
   const s = createServiceClient();
   const { data: rowsData } = await s
     .from('campaigns')

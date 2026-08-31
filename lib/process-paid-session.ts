@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { createServiceClient } from '@/lib/supabase-server';
-import { adminContributionHtml, contributionReceiptHtml, sendEmail } from '@/lib/email';
+import { adminContributionHtml, contributionReceiptEmailHtml, sendEmail } from '@/lib/email';
+import { buildContributionReceiptPdf } from '@/lib/receipt-pdf';
 import { SITE } from '@/lib/constants';
 import { createNotification, notifyAdmins } from '@/lib/notifications';
 
@@ -75,17 +76,30 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
       timeZone: 'Pacific/Auckland',
     }).format(new Date((charge.created || session.created) * 1000));
 
+    const campaignTitle = campaign?.title || session.metadata?.campaign_title || 'Good Cause campaign';
+    const supportEmail = process.env.GOODCAUSE_SUPPORT_EMAIL?.trim() || process.env.RESEND_REPLY_TO_EMAIL?.trim() || 'sandy@webfitnews.co.nz';
+    const configuredAddress = process.env.GOODCAUSE_BUSINESS_ADDRESS?.trim() || '';
+    const businessAddress = configuredAddress && !/REPLACE_|placeholder/i.test(configuredAddress) ? configuredAddress : 'New Zealand';
+    const receiptPdf = buildContributionReceiptPdf({
+      receiptNumber: receipt,
+      donorName,
+      campaignTitle,
+      amountCents: gross,
+      paidAt,
+      processorReference: intent.id,
+      supportEmail,
+      businessAddress,
+    });
+
     const receiptEmail = await sendEmail({
       to: donorEmail,
-      subject: `Good Cause receipt ${receipt}`,
-      html: contributionReceiptHtml({
-        receiptNumber: receipt,
-        donorName,
-        campaignTitle: campaign?.title || session.metadata?.campaign_title || 'Good Cause campaign',
-        amountCents: gross,
-        paidAt,
-        processorReference: intent.id,
-      }),
+      subject: `Thank you for your contribution - receipt ${receipt}`,
+      html: contributionReceiptEmailHtml({ donorName, receiptNumber: receipt, campaignTitle }),
+      text: `Thank you, ${donorName}. Your contribution to ${campaignTitle} has been successfully received. Your Good Cause contribution receipt ${receipt} is attached as a PDF. For receipt verification or questions, email ${supportEmail}.`,
+      attachments: [{
+        filename: `Good-Cause-Receipt-${receipt}.pdf`,
+        content: receiptPdf.toString('base64'),
+      }],
     });
 
     if (receiptEmail.delivered) {

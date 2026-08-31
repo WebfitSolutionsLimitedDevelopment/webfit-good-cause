@@ -11,12 +11,13 @@ export async function createNotification(input:{userId?:string|null;campaignId?:
   }
 }
 
-export async function notifyAdmins(input:{campaignId?:string|null;type:string;title:string;message:string}){
+export async function notifyAdmins(input:{campaignId?:string|null;type:string;title:string;message:string;sendEmailNotifications?:boolean}){
   const db=createServiceClient();
   const {data:staff}=await db.from('profiles').select('id,email').in('role',['admin','super_admin']);
   for(const person of staff??[]){
-    await createNotification({userId:person.id,campaignId:input.campaignId,type:input.type,title:input.title,message:input.message,email:person.email});
+    await createNotification({userId:person.id,campaignId:input.campaignId,type:input.type,title:input.title,message:input.message,email:input.sendEmailNotifications===false?null:person.email});
   }
+  if(input.sendEmailNotifications===false) return;
   const compliance=process.env.GOODCAUSE_COMPLIANCE_EMAIL;
   if(compliance && !(staff??[]).some((p:any)=>p.email===compliance)){
     await sendEmail({to:compliance,subject:input.title,html:`<p>${input.message}</p>`}).catch(()=>null);

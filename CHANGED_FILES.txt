@@ -1,8 +1,6 @@
-Good Cause live amount sync fix
-
-Changed file:
-- lib/public-campaigns.ts
-
-Fix:
-- Forces public campaign fundraising totals and supporter counts to be loaded fresh from Supabase on every request.
-- Prevents the campaign listing page from showing an old cached amount while the detail page shows the latest amount.
+lib/email.ts
+lib/notifications.ts
+lib/process-paid-session.ts
+app/contact/page.tsx
+app/complaints/page.tsx
+app/report/page.tsx

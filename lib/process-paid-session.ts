@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { createServiceClient } from '@/lib/supabase-server';
-import { contributionReceiptHtml, sendEmail } from '@/lib/email';
+import { adminContributionHtml, contributionReceiptHtml, sendEmail } from '@/lib/email';
 import { SITE } from '@/lib/constants';
 import { createNotification, notifyAdmins } from '@/lib/notifications';
 
@@ -75,7 +75,7 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
       timeZone: 'Pacific/Auckland',
     }).format(new Date((charge.created || session.created) * 1000));
 
-    await sendEmail({
+    const receiptEmail = await sendEmail({
       to: donorEmail,
       subject: `Good Cause receipt ${receipt}`,
       html: contributionReceiptHtml({
@@ -88,7 +88,9 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
       }),
     });
 
-    await db.from('donations').update({ receipt_sent_at: new Date().toISOString() }).eq('id', donation.id);
+    if (receiptEmail.delivered) {
+      await db.from('donations').update({ receipt_sent_at: new Date().toISOString() }).eq('id', donation.id);
+    }
   }
 
   if (existing?.status !== 'succeeded') {
@@ -118,7 +120,6 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
       }
     }
 
-    const owner: any = (campaign as any)?.profiles;
     const amount = new Intl.NumberFormat('en-NZ', { style: 'currency', currency: 'NZD' }).format(gross / 100);
     const netAmount = new Intl.NumberFormat('en-NZ', { style: 'currency', currency: 'NZD' }).format(net / 100);
 
@@ -128,7 +129,6 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
       type: 'donation_received',
       title: `New contribution received: ${amount}`,
       message: `Your campaign ${(campaign as any)?.title || ''} received ${amount}. Receipt ${receipt} has been issued to the contributor. ${netAmount} is recorded as the campaign's pending payout amount after the Good Cause platform fee and Stripe processing cost.`,
-      email: owner?.email,
     });
 
     await notifyAdmins({
@@ -136,7 +136,30 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
       type: 'donation_received',
       title: `New Good Cause contribution: ${amount}`,
       message: `${(campaign as any)?.reference_code || campaignId} received ${amount}. ${netAmount} has been added to the pending manual bank payout ledger.`,
+      sendEmailNotifications: false,
     });
+
+    const adminEmail = (process.env.GOODCAUSE_ADMIN_EMAIL || 'sandy@webfitnews.co.nz').trim();
+    const paidAt = new Intl.DateTimeFormat('en-NZ', {
+      dateStyle: 'long',
+      timeStyle: 'short',
+      timeZone: 'Pacific/Auckland',
+    }).format(new Date((charge.created || session.created) * 1000));
+
+    await sendEmail({
+      to: adminEmail,
+      subject: `Good Cause payment received: ${amount}`,
+      html: adminContributionHtml({
+        campaignTitle: (campaign as any)?.title || session.metadata?.campaign_title || 'Good Cause campaign',
+        campaignReference: (campaign as any)?.reference_code || null,
+        amountCents: gross,
+        donorName,
+        donorEmail,
+        receiptNumber: receipt,
+        processorReference: intent.id,
+        paidAt,
+      }),
+    }).catch((error) => console.error('goodcause_admin_email_failed', error));
 
     await db.from('audit_events').insert({
       campaign_id: campaignId,

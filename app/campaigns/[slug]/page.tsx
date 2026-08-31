@@ -48,7 +48,8 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
 
       <section className="campaign-section">
         <h2>Campaign media and references</h2>
-        {galleryMedia.length? <div className="campaign-media-grid">{galleryMedia.map((m:any)=><div className="media-card" key={m.id}>{m.kind==='image'?<img src={`/api/media/${m.id}`} alt={m.title}/>:<a className="text-link" href={m.url||'#'} target="_blank" rel="noreferrer">{m.title}</a>}<div><strong>{m.title}</strong><small>{m.kind}</small></div></div>)}</div>:<p className="muted">No additional campaign media has been published yet.</p>}
+        {slug==='nepal-flash-flood-relief-2026'&&<div className="source-list"><a href="https://webfitnews.com/nepal-flood-crisis-deepens-new-lake-raises-fresh-risk-hundreds-still-missing" target="_blank" rel="noreferrer">Good read: Nepal flood crisis deepens as new lake raises fresh risk</a><a href="https://webfitnews.com/five-new-zealanders-reported-missing-after-deadly-nepal-tibet-border-flood" target="_blank" rel="noreferrer">Good read: Five New Zealanders reported missing after deadly Nepal-Tibet border flood</a></div>}
+        {galleryMedia.length? <div className="campaign-media-grid">{galleryMedia.map((m:any)=><div className="media-card" key={m.id}>{m.kind==='image'?<img src={`/api/media/${m.id}`} alt={m.title}/>:<a className="text-link" href={m.url||'#'} target="_blank" rel="noreferrer">{m.title}</a>}<div><strong>{m.title}</strong><small>{m.kind}</small></div></div>)}</div>:slug==='nepal-flash-flood-relief-2026'?null:<p className="muted">No additional campaign media has been published yet.</p>}
       </section>
 
       <section className="campaign-section">

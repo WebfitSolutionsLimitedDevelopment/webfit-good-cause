@@ -8,8 +8,13 @@ export async function POST(request:Request){
   if(!user)return NextResponse.json({error:'Unauthorised'},{status:401});
   const form=await request.formData();const campaignId=String(form.get('campaignId')||'');const kind=String(form.get('kind')||'');const title=String(form.get('title')||'').trim();const url=String(form.get('url')||'').trim();const file=form.get('file');const isPrimary=String(form.get('isPrimary')||'')==='true';
   if(!campaignId||!title||!['image','video','article'].includes(kind))return NextResponse.json({error:'Complete the required media fields.'},{status:400});
-  const service=createServiceClient();const {data:campaign}=await service.from('campaigns').select('id,owner_id,title,reference_code').eq('id',campaignId).maybeSingle();
-  if(!campaign||campaign.owner_id!==user.id)return NextResponse.json({error:'Forbidden'},{status:403});
+  const service=createServiceClient();
+  const [{data:campaign},{data:profile}]=await Promise.all([
+    service.from('campaigns').select('id,owner_id,title,reference_code').eq('id',campaignId).maybeSingle(),
+    service.from('profiles').select('role').eq('id',user.id).maybeSingle()
+  ]);
+  const isSuperAdmin=profile?.role==='super_admin';
+  if(!campaign||(campaign.owner_id!==user.id&&!isSuperAdmin))return NextResponse.json({error:'Forbidden'},{status:403});
   let storagePath:string|null=null,fileName:string|null=null,mimeType:string|null=null;
   if(kind==='image'){
     if(!(file instanceof File))return NextResponse.json({error:'Choose an image file.'},{status:400});
@@ -19,9 +24,15 @@ export async function POST(request:Request){
   }else{
     try{const parsed=new URL(url);if(!['http:','https:'].includes(parsed.protocol))throw new Error();}catch{return NextResponse.json({error:'Enter a valid https URL.'},{status:400});}
   }
-  const {data:item,error}=await service.from('campaign_media').insert({campaign_id:campaignId,owner_user_id:user.id,kind,title,url:url||null,storage_path:storagePath,file_name:fileName,mime_type:mimeType,is_primary:kind==='image'&&isPrimary,status:'pending'}).select('id').single();
+  if(isSuperAdmin&&kind==='image'&&isPrimary){
+    await service.from('campaign_media').update({is_primary:false}).eq('campaign_id',campaignId).eq('kind','image');
+  }
+  const status=isSuperAdmin?'approved':'pending';
+  const {data:item,error}=await service.from('campaign_media').insert({campaign_id:campaignId,owner_user_id:user.id,kind,title,url:url||null,storage_path:storagePath,file_name:fileName,mime_type:mimeType,is_primary:kind==='image'&&isPrimary,status}).select('id').single();
   if(error)return NextResponse.json({error:error.message},{status:400});
-  await service.from('audit_events').insert({actor_user_id:user.id,campaign_id:campaignId,event_type:'campaign_media_submitted',entity_type:'campaign_media',entity_id:item.id,metadata:{kind,title}});
-  await notifyAdmins({campaignId,type:'campaign_media_submitted',title:`Campaign media awaiting approval: ${campaign.reference_code}`,message:`${campaign.title} has a new ${kind} submission. It is not public until approved.`});
-  return NextResponse.json({ok:true});
+  await service.from('audit_events').insert({actor_user_id:user.id,campaign_id:campaignId,event_type:isSuperAdmin?'campaign_media_published':'campaign_media_submitted',entity_type:'campaign_media',entity_id:item.id,metadata:{kind,title,is_primary:isPrimary,direct_publish:isSuperAdmin}});
+  if(!isSuperAdmin){
+    await notifyAdmins({campaignId,type:'campaign_media_submitted',title:`Campaign media awaiting approval: ${campaign.reference_code}`,message:`${campaign.title} has a new ${kind} submission. It is not public until approved.`});
+  }
+  return NextResponse.json({ok:true,message:isSuperAdmin?'Media published successfully.':'Media submitted for admin approval.'});
 }

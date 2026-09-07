@@ -4,6 +4,7 @@ import { getPublicCampaign } from '@/lib/public-campaigns';
 import { money } from '@/lib/fees';
 import { SITE } from '@/lib/constants';
 import { DonatePanel } from '@/components/DonatePanel';
+import { DonorWall } from '@/components/DonorWall';
 import { createServiceClient } from '@/lib/supabase-server';
 
 export default async function CampaignPage({params}:{params:Promise<{slug:string}>}){
@@ -13,12 +14,14 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
 
   const pct=c.goal>0?Math.min(100,Math.round(c.raised/c.goal*100)):0;
   const s=createServiceClient();
-  const [{data:updatesData},{data:mediaData}]=await Promise.all([
+  const [{data:updatesData},{data:mediaData},{data:donationData}]=await Promise.all([
     s.from('campaign_updates').select('*').eq('campaign_id',c.id).eq('status','approved').order('published_at',{ascending:false}),
-    s.from('campaign_media').select('id,kind,title,url,is_primary').eq('campaign_id',c.id).eq('status','approved').order('created_at',{ascending:false})
+    s.from('campaign_media').select('id,kind,title,url,is_primary').eq('campaign_id',c.id).eq('status','approved').order('created_at',{ascending:false}),
+    s.from('donations').select('id,amount_cents,donor_display_name,anonymous,message,paid_at,created_at').eq('campaign_id',c.id).eq('status','succeeded').order('paid_at',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false})
   ]);
   const updates=updatesData??[];
   const media=mediaData??[];
+  const donations=(donationData??[]) as any[];
   const imageMedia=media.filter((m:any)=>m.kind==='image');
   const cover=imageMedia.find((m:any)=>m.is_primary) ?? imageMedia[0] ?? null;
   const galleryMedia=media.filter((m:any)=>m.id!==cover?.id);
@@ -97,6 +100,19 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
         <h2>Campaign media and references</h2>
         {slug==='nepal-flash-flood-relief-2026'&&<div className="source-list"><a href="https://webfitnews.com/nepal-flood-crisis-deepens-new-lake-raises-fresh-risk-hundreds-still-missing" target="_blank" rel="noreferrer">Good read: Nepal flood crisis deepens as new lake raises fresh risk</a><a href="https://webfitnews.com/five-new-zealanders-reported-missing-after-deadly-nepal-tibet-border-flood" target="_blank" rel="noreferrer">Good read: Five New Zealanders reported missing after deadly Nepal-Tibet border flood</a></div>}
         {galleryMedia.length? <div className="campaign-media-grid">{galleryMedia.map((m:any)=><div className="media-card" key={m.id}>{m.kind==='image'?<img src={`/api/media/${m.id}`} alt={m.title}/>:<a className="text-link" href={m.url||'#'} target="_blank" rel="noreferrer">{m.title}</a>}<div><strong>{m.title}</strong><small>{m.kind}</small></div></div>)}</div>:slug==='nepal-flash-flood-relief-2026'?null:<p className="muted">No additional campaign media has been published yet.</p>}
+      </section>
+
+      <DonorWall donations={donations}/>
+
+      <section className="campaign-section">
+        <h2>How Good Cause protects supporters</h2>
+        <div className="campaign-trust-grid">
+          <div className="trust-card"><h3>Campaign review</h3><p>Campaigns must pass Good Cause review before donations can be enabled.</p></div>
+          <div className="trust-card"><h3>Verified payout controls</h3><p>Payments are enabled only when required beneficiary and payout checks are satisfied.</p></div>
+          <div className="trust-card"><h3>Private contact details</h3><p>Contributor email addresses and mobile numbers are securely recorded but are never published on campaign pages.</p></div>
+          <div className="trust-card"><h3>Questions and concerns</h3><p>Supporters can contact Good Cause or report campaign information they believe is inaccurate or unsafe.</p></div>
+        </div>
+        <div className="campaign-links-row"><Link href="/how-it-works">How Good Cause works</Link><Link href="/faq">Frequently asked questions</Link><Link href="/transparency">Transparency</Link><Link href="/report">Report this campaign</Link></div>
       </section>
 
       <section className="campaign-section">

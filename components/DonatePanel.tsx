@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useMemo, useState } from 'react';
+import { CampaignShareTools } from '@/components/CampaignShareTools';
 
 export function DonatePanel({campaignSlug, enabled}:{campaignSlug:string; enabled:boolean}){
   const isOneMoreGift=campaignSlug==='one-more-gift-2026';
@@ -52,5 +53,6 @@ export function DonatePanel({campaignSlug, enabled}:{campaignSlug:string; enable
     {error&&<p className="form-error">{error}</p>}
     {isOneMoreGift&&<p className="fineprint"><strong>There is no right amount.</strong> Give what feels comfortable. A small contribution is still a meaningful act of kindness.</p>}
     <p className="fineprint">Your email address and mobile number are private and are not displayed on the public campaign page. A contribution receipt is emailed after successful payment.</p>
+    <CampaignShareTools slug={campaignSlug} title="this campaign"/>
   </form>;
 }

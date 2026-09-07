@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
     const donorName = clean(body.donorName, 120);
     const donorEmail = clean(body.donorEmail, 180).toLowerCase();
     const donorMobile = clean(body.donorMobile, 40);
+    const donorMessage = clean(body.donorMessage, 500);
     const anonymous = body.anonymous === true;
 
     if (!Number.isFinite(amount) || amount < SITE.minimumDonation) {
@@ -95,6 +96,7 @@ export async function POST(req: NextRequest) {
           donor_name: donorName,
           donor_email: donorEmail,
           donor_mobile: donorMobile,
+          donor_message: donorMessage,
           anonymous: String(anonymous),
         },
       },
@@ -106,6 +108,7 @@ export async function POST(req: NextRequest) {
         donor_name: donorName,
         donor_email: donorEmail,
         donor_mobile: donorMobile,
+        donor_message: donorMessage,
         anonymous: String(anonymous),
       },
     });

@@ -1,3 +1,3 @@
 import type { MetadataRoute } from 'next';
-const routes=['','/campaigns','/start','/how-it-works','/fees','/transparency','/safety','/verification','/complaints','/report','/refunds','/terms','/privacy','/acceptable-use','/fundraising-policy','/beneficiary-policy','/payment-policy','/aml-risk','/conflicts','/editorial-independence','/contact','/about'];
+const routes=['','/campaigns','/start','/how-it-works','/faq','/fees','/transparency','/safety','/verification','/complaints','/report','/refunds','/terms','/privacy','/acceptable-use','/fundraising-policy','/beneficiary-policy','/payment-policy','/aml-risk','/conflicts','/editorial-independence','/contact','/about'];
 export default function sitemap():MetadataRoute.Sitemap{const base=process.env.NEXT_PUBLIC_SITE_URL||'https://goodcause.webfitnews.co.nz';return routes.map(r=>({url:`${base}${r}`,lastModified:new Date(),changeFrequency:'weekly',priority:r===''?1:.6}));}

@@ -38,6 +38,7 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
   const donorName = session.metadata?.donor_name || session.customer_details?.name || 'Supporter';
   const donorEmail = session.metadata?.donor_email || session.customer_details?.email || '';
   const donorMobile = session.metadata?.donor_mobile || '';
+  const donorMessage = (session.metadata?.donor_message || intent.metadata?.donor_message || '').trim().slice(0, 500);
   const anonymous = session.metadata?.anonymous === 'true';
   const receipt = receiptNumber(session.id, session.created);
 
@@ -59,6 +60,7 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
         donor_email: donorEmail || null,
         donor_mobile: donorMobile || null,
         anonymous,
+        message: donorMessage || null,
         receipt_number: receipt,
         paid_at: new Date((charge.created || session.created) * 1000).toISOString(),
       },
@@ -190,4 +192,3 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
     });
   }
 }
-

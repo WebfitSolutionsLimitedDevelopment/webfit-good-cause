@@ -15,6 +15,9 @@ export type PublicCampaign = {
   beneficiary: string;
   beneficiaryVerified: boolean;
   lastContributor: string | null;
+  lastContributionAt: string | null;
+  launchedAt: string | null;
+  closesAt: string | null;
   coverMediaId: string | null;
 };
 
@@ -23,7 +26,7 @@ export async function getPublicCampaigns(): Promise<PublicCampaign[]> {
   const s = createServiceClient();
   const { data: rowsData } = await s
     .from('campaigns')
-    .select('id,slug,title,summary,story,category,location,target_cents,beneficiaries(display_name,identity_status,consent_status)')
+    .select('id,slug,title,summary,story,category,location,target_cents,published_at,launched_at,closes_at,beneficiaries(display_name,identity_status,consent_status)')
     .eq('status', 'live')
     .order('published_at', { ascending: false });
 
@@ -33,9 +36,10 @@ export async function getPublicCampaigns(): Promise<PublicCampaign[]> {
   const ids = (rows as any[]).map((c:any)=>c.id);
   const [{data:donationRows},{data:mediaRows}] = await Promise.all([
     s.from('donations')
-      .select('campaign_id,amount_cents,donor_display_name,anonymous,created_at')
+      .select('campaign_id,amount_cents,donor_display_name,anonymous,created_at,paid_at')
       .in('campaign_id',ids)
       .eq('status','succeeded')
+      .order('paid_at',{ascending:false,nullsFirst:false})
       .order('created_at',{ascending:false}),
     s.from('campaign_media')
       .select('id,campaign_id,is_primary,created_at')
@@ -71,6 +75,9 @@ export async function getPublicCampaigns(): Promise<PublicCampaign[]> {
       beneficiary:beneficiaryVerified?(c.beneficiaries?.display_name||'Verified beneficiary'):'',
       beneficiaryVerified,
       lastContributor:latest?(latest.anonymous?'Anonymous supporter':latest.donor_display_name||'Supporter'):null,
+      lastContributionAt:latest?(latest.paid_at||latest.created_at||null):null,
+      launchedAt:c.launched_at||c.published_at||null,
+      closesAt:c.closes_at||null,
       coverMediaId:cover?.id||null
     };
   });

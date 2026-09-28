@@ -27,7 +27,9 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
   const articleLd = {
     '@context': 'https://schema.org', '@type': 'Article', headline: g.title, description: g.description, url,
     mainEntityOfPage: url, inLanguage: 'en-NZ', datePublished: g.updated, dateModified: g.updated, keywords: g.keywords.join(', '),
-    author: { '@type': 'Organization', name: 'Good Cause', url: absoluteUrl('/') },
+    author: { '@type': 'Organization', name: 'Good Cause', url: absoluteUrl('/about') },
+    reviewedBy: { '@type': 'Organization', name: 'Good Cause', url: absoluteUrl('/about') },
+    isAccessibleForFree: true,
     publisher: { '@id': absoluteUrl('/#organization') },
   };
   const faqLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: g.faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
@@ -42,7 +44,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
       <div className="eyebrow">Fundraising guide</div>
       <h1>{g.title}</h1>
       <p className="muted">{g.intro}</p>
-      <p className="fineprint">Updated {updated}</p>
+      <p className="fineprint">Written and reviewed by the Good Cause team at Webfit Solutions Limited · Updated {updated} · <Link href="/about">About Good Cause</Link></p>
     </div></section>
     <section className="section"><div className="shell prose">
       {g.sections.map((s) => <section key={s.heading}>

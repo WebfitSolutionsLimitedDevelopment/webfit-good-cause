@@ -60,7 +60,9 @@ export const ORGANIZATION_JSONLD = {
   logo: absoluteUrl('/goodcause-logo.png'),
   description: 'New Zealand community fundraising platform operated by Webfit Solutions Limited. Every campaign is reviewed and the cause receives 97.5% of each donation.',
   areaServed: { '@type': 'Country', name: 'New Zealand' },
-  parentOrganization: { '@type': 'Organization', name: 'Webfit Solutions Limited' },
+  parentOrganization: { '@type': 'Organization', name: 'Webfit Solutions Limited', url: 'https://webfitnews.co.nz' },
+  knowsAbout: ['online fundraising', 'crowdfunding', 'donations', 'community fundraising in New Zealand'],
+  ...(process.env.GOODCAUSE_SUPPORT_EMAIL ? { contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', email: process.env.GOODCAUSE_SUPPORT_EMAIL, areaServed: 'NZ', availableLanguage: 'English' } } : {}),
 };
 
 export const WEBSITE_JSONLD = {

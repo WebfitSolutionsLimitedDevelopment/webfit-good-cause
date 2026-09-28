@@ -26,8 +26,9 @@ type PageMetaInput = {
 };
 
 /** Consistent title, description, canonical, Open Graph and Twitter tags for a page. */
-export function pageMeta({ path, title, description, keywords = [], noindex, image, type = 'website' }: PageMetaInput): Metadata {
+export function pageMeta({ path, title, description, keywords = [], noindex, image: imageInput, type = 'website' }: PageMetaInput): Metadata {
   const url = absoluteUrl(path);
+  const image = imageInput || absoluteUrl('/opengraph-image');
   return {
     title,
     description,

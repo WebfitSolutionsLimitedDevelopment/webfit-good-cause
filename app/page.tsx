@@ -5,7 +5,7 @@ import { createServiceClient } from '@/lib/supabase-server';
 import { money } from '@/lib/fees';
 
 import { pageMeta } from '@/lib/seo';
-export const metadata = { ...pageMeta({ path: '/', title: 'Good Cause – Online fundraising in New Zealand', description: 'Start a fundraiser or donate to verified causes in New Zealand. Every campaign is reviewed, and the cause receives 97.5% of each donation.', keywords: ['fundraising website NZ', 'donation platform NZ', 'raise money online NZ', 'Givealittle alternative'] }), title: { absolute: 'Good Cause – Online fundraising in New Zealand | Donate & start a fundraiser' } };
+export const metadata = { ...pageMeta({ path: '/', title: 'Good Cause – Online fundraising in New Zealand', description: 'Start a fundraiser or donate to verified causes in New Zealand. Every campaign is reviewed, and the cause receives 97.5% of each donation.', keywords: ['fundraising website NZ', 'donation platform NZ', 'raise money online NZ', 'Givealittle alternative'] }), title: { absolute: 'Good Cause – Online fundraising & donations in NZ' } };
 function timeAgo(value:string|null|undefined){
   if(!value) return null;
   const then=new Date(value).getTime();

@@ -113,3 +113,15 @@
   .footer{margin-top:38px;padding:40px 0 18px}
   .footer-grid{gap:28px}
 }
+
+/* Guides */
+.guide-card h2{font-size:1.15rem;margin:0 0 .5rem}
+.guide-card h2 a{color:inherit;text-decoration:none}
+.guide-card h2 a:hover{text-decoration:underline}
+.guide-card .button{margin-top:.75rem}
+.guide-cta{margin:2rem 0;padding:1.5rem}
+.breadcrumbs{font-size:.9rem;margin-bottom:.75rem;opacity:.85}
+.breadcrumbs a{color:inherit}
+.guide-card{padding:22px;display:flex;flex-direction:column}
+.guide-card .button{align-self:flex-start;margin-top:auto}
+@media(min-width:851px){.footer-grid{grid-template-columns:1.6fr repeat(4,1fr)}}

@@ -7,7 +7,7 @@ export const revalidate = 3600;
 
 const STATIC: [string, number, MetadataRoute.Sitemap[number]['changeFrequency']][] = [
   ['', 1, 'daily'], ['/campaigns', 0.9, 'daily'], ['/start', 0.9, 'monthly'], ['/how-it-works', 0.8, 'monthly'],
-  ['/fees', 0.8, 'monthly'], ['/faq', 0.7, 'monthly'], ['/verification', 0.6, 'monthly'],
+  ['/fees', 0.8, 'monthly'], ['/guides', 0.8, 'weekly'], ['/faq', 0.7, 'monthly'], ['/verification', 0.6, 'monthly'],
   ['/safety', 0.6, 'monthly'], ['/transparency', 0.6, 'monthly'], ['/about', 0.5, 'monthly'], ['/contact', 0.5, 'yearly'],
   ['/report', 0.4, 'yearly'], ['/complaints', 0.3, 'yearly'], ['/refunds', 0.3, 'yearly'], ['/terms', 0.3, 'yearly'],
   ['/privacy', 0.3, 'yearly'], ['/acceptable-use', 0.3, 'yearly'], ['/fundraising-policy', 0.3, 'yearly'],

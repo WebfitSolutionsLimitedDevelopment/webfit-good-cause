@@ -4,6 +4,7 @@ import { requireStaff } from '@/lib/auth';
 import { createServiceClient } from '@/lib/supabase-server';
 import { AdminNav } from '@/components/admin/AdminNav';
 import { notifyCampaignOwner } from '@/lib/notifications';
+import { pingIndexNow } from '@/lib/indexnow';
 
 export default async function Page({params}:{params:Promise<{id:string}>}){
   const {id}=await params;const staff=await requireStaff(['reviewer','admin','super_admin']);const s=createServiceClient();
@@ -32,6 +33,7 @@ export default async function Page({params}:{params:Promise<{id:string}>}){
     const next:Record<string,string>={live:'Your campaign is approved and now live. Share your campaign link so supporters can find it.',more_information_required:'We need more information before we can continue the review. Please reply from your dashboard or upload the documents requested.',enhanced_review:'Your campaign needs an extra level of review. We will contact you if we need anything else.',rejected:'We are unable to approve this campaign. If you think we got something wrong, reply to this email.',suspended:'Your campaign has been paused and is not accepting donations while we look into it.'};
     const titles:Record<string,string>={live:`Approved and live: ${existing.title}`,more_information_required:`More information needed: ${existing.title}`,enhanced_review:`Extra review needed: ${existing.title}`,rejected:`Application declined: ${existing.title}`,suspended:`Campaign paused: ${existing.title}`};
     await notifyCampaignOwner({campaignId:id,type:'campaign_status_changed',title:titles[to]||`Good Cause campaign update: ${existing.title}`,message:`${next[to]||`Status: ${String(to).replaceAll('_',' ')}.`}\nNote from the Good Cause team: ${reason}`,link:to==='live'?`/campaigns/${existing.slug}`:undefined,ctaLabel:to==='live'?'View your live campaign':undefined});
+    if(to==='live')await pingIndexNow([`/campaigns/${existing.slug}`,'/campaigns','/sitemap.xml']);
     revalidatePath(`/admin/campaigns/${id}`);redirect(`/admin/campaigns/${id}`);
   }
 

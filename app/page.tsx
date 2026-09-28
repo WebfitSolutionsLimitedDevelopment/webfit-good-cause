@@ -108,5 +108,16 @@ export default async function Home(){
     </div></section>}
 
     <section className="section alt"><div className="shell"><div className="section-head"><div><div className="eyebrow">How it works</div><h2>Simple for supporters. Serious about trust.</h2></div></div><div className="grid-3"><div className="card feature"><div className="number">1</div><h3>Tell us about the cause</h3><p>Fundraisers explain who is raising funds, who benefits, what the money is for and provide evidence for review.</p></div><div className="card feature"><div className="number">2</div><h3>Good Cause reviews it</h3><p>Identity, beneficiary, payment destination, campaign purpose and risk checks are completed before donations are enabled.</p></div><div className="card feature"><div className="number">3</div><h3>Donate with clarity</h3><p>Supporters can see the campaign purpose, fee model, updates and fundraising progress.</p></div></div></div></section>
+
+    <section className="section"><div className="shell"><div className="section-head"><div><div className="eyebrow">Fundraising guides</div><h2>How to fundraise in New Zealand</h2><p>Free, plain-English guides for families, schools, clubs and community groups across Aotearoa.</p></div><Link className="button secondary" href="/guides">All guides</Link></div>
+      <div className="grid-3">
+        <Link className="card guide-card" href="/guides/how-to-fundraise-online-nz"><h3>How to raise money online in NZ</h3><p className="muted">Step by step, from setting a target to getting paid.</p></Link>
+        <Link className="card guide-card" href="/guides/fundraising-ideas-nz"><h3>Fundraising ideas that work</h3><p className="muted">Easy ideas, challenges, events and local business support.</p></Link>
+        <Link className="card guide-card" href="/guides/fundraising-in-auckland"><h3>Fundraising in Auckland</h3><p className="muted">Online pages, events and when you need council approval.</p></Link>
+        <Link className="card guide-card" href="/guides/medical-fundraising-nz"><h3>Raising money for medical costs</h3><p className="muted">Treatment, travel and recovery costs, done respectfully.</p></Link>
+        <Link className="card guide-card" href="/guides/online-fundraising-fees-nz"><h3>Fundraising fees compared</h3><p className="muted">How much of each donation actually reaches the cause.</p></Link>
+        <Link className="card guide-card" href="/guides/school-and-club-fundraising"><h3>Schools, clubs and groups</h3><p className="muted">Uniforms, trips, equipment and community projects.</p></Link>
+      </div>
+    </div></section>
   </>;
 }

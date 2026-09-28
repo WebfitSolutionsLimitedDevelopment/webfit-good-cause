@@ -1,3 +1,4 @@
+import { RelatedGuides } from '@/components/seo/RelatedGuides';
 import Link from 'next/link';
 
 import { pageMeta } from '@/lib/seo';
@@ -14,4 +15,4 @@ const faqs=[
   ['How can an organisation start fundraising?','Use Start a cause to submit the campaign purpose, beneficiary information and supporting evidence. Good Cause may request additional documents before approval.']
 ];
 
-export default function Page(){const faqLd={'@context':'https://schema.org','@type':'FAQPage',mainEntity:faqs.map(([q,a])=>({'@type':'Question',name:q,acceptedAnswer:{'@type':'Answer',text:a}}))};return <><JsonLd data={faqLd}/><section className="page-hero"><div className="shell"><div className="eyebrow">Help & support</div><h1>Frequently asked questions</h1><p>Clear answers about donating, privacy, campaign checks and payouts.</p></div></section><section className="section"><div className="shell prose"><div className="faq-list">{faqs.map(([q,a])=><article className="faq-item" key={q}><h2>{q}</h2><p>{a}</p></article>)}</div><p>Still need help? <Link href="/contact">Contact Good Cause</Link>.</p></div></section></>}
+export default function Page(){const faqLd={'@context':'https://schema.org','@type':'FAQPage',mainEntity:faqs.map(([q,a])=>({'@type':'Question',name:q,acceptedAnswer:{'@type':'Answer',text:a}}))};return <><JsonLd data={faqLd}/><section className="page-hero"><div className="shell"><div className="eyebrow">Help & support</div><h1>Frequently asked questions</h1><p>Clear answers about donating, privacy, campaign checks and payouts.</p></div></section><section className="section"><div className="shell prose"><div className="faq-list">{faqs.map(([q,a])=><article className="faq-item" key={q}><h2>{q}</h2><p>{a}</p></article>)}</div><p>Still need help? <Link href="/contact">Contact Good Cause</Link>.</p><RelatedGuides slugs={["how-to-fundraise-online-nz", "fundraising-rules-nz", "donation-tax-credits-nz"]}/></div></section></>}

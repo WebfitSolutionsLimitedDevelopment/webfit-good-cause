@@ -125,3 +125,8 @@
 .guide-card{padding:22px;display:flex;flex-direction:column}
 .guide-card .button{align-self:flex-start;margin-top:auto}
 @media(min-width:851px){.footer-grid{grid-template-columns:1.6fr repeat(4,1fr)}}
+.related-guides{margin:40px 0 0;padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.related-guides h2{font-size:22px;margin:0 0 10px}
+.related-guides a{color:var(--blue);text-decoration:underline}
+a.guide-card{display:flex;flex-direction:column;padding:22px;color:inherit}
+a.guide-card:hover{border-color:var(--green)}

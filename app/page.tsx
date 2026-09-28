@@ -64,7 +64,7 @@ export default async function Home(){
     </div>
     {featured?<aside className="featured-appeal featured-live-card">
       <div className="featured-live-visual">
-        {featured.coverMediaId?<Image src={`/api/media/${featured.coverMediaId}`} alt={featured.title} width={1200} height={800} sizes="(max-width: 850px) 100vw, 560px" priority/>:featured.slug==='nepal-flash-flood-relief-2026'?<Image src="/campaigns/nepal-flash-flood-relief-2026.png" alt="Flood damage in Nepal" width={1200} height={800} sizes="(max-width: 850px) 100vw, 560px" priority/>:<div className="campaign-cover-fallback" aria-hidden="true"/>}
+        {featured.coverMediaId?<Image quality={80} src={`/api/media/${featured.coverMediaId}`} alt={featured.title} width={1200} height={800} sizes="(max-width: 850px) 100vw, 560px" priority/>:featured.slug==='nepal-flash-flood-relief-2026'?<Image src="/campaigns/nepal-flash-flood-relief-2026.png" alt="Flood damage in Nepal" width={1200} height={800} sizes="(max-width: 850px) 100vw, 560px" priority/>:<div className="campaign-cover-fallback" aria-hidden="true"/>}
         <div className="live-badge"><span className="live-dot"/>Live cause</div>
       </div>
       <div className="appeal-body"><div className="eyebrow">Featured now</div><h2>{featured.title}</h2><p>{featured.summary}</p>

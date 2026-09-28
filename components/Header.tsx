@@ -57,6 +57,7 @@ export function Header() {
         <Link href="/campaigns" onClick={()=>setOpen(false)}>Explore</Link>
         <Link href="/how-it-works" onClick={()=>setOpen(false)}>How it works</Link>
         <Link href="/fees" onClick={()=>setOpen(false)}>Fees</Link>
+        <Link href="/guides" onClick={()=>setOpen(false)}>Guides</Link>
         <Link href="/safety" onClick={()=>setOpen(false)}>Safety</Link>
         {signedIn ? <>
           {isStaff && <Link href="/admin" onClick={()=>setOpen(false)}>Admin</Link>}

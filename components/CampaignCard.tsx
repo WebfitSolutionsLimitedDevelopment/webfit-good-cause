@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { PublicCampaign } from '@/lib/public-campaigns';
 import { money } from '@/lib/fees';
@@ -21,7 +22,7 @@ export function CampaignCard({campaign}:{campaign:PublicCampaign}){
   const latest=timeAgo(campaign.lastContributionAt);
   return <article className="campaign-card polished-card live-campaign-card">
     <div className="campaign-visual campaign-photo">
-      {campaign.coverMediaId?<img src={`/api/media/${campaign.coverMediaId}`} alt={campaign.title}/>:campaign.slug==='nepal-flash-flood-relief-2026'?<img src="/campaigns/nepal-flash-flood-relief-2026.png" alt="Flood damage in Nepal"/>:<div className="campaign-cover-fallback" aria-hidden="true"/>}
+      {campaign.coverMediaId?<Image src={`/api/media/${campaign.coverMediaId}`} alt={campaign.title} width={800} height={533} sizes="(max-width: 850px) 100vw, 380px"/>:campaign.slug==='nepal-flash-flood-relief-2026'?<Image src="/campaigns/nepal-flash-flood-relief-2026.png" alt="Flood damage in Nepal" width={800} height={533} sizes="(max-width: 850px) 100vw, 380px"/>:<div className="campaign-cover-fallback" aria-hidden="true"/>}
       <div className="campaign-chip">{campaign.category}</div>
       <div className="live-badge"><span className="live-dot"/>Live</div>
     </div>

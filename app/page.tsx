@@ -56,8 +56,8 @@ export default async function Home(){
 
   return <>
     <section className="hero refined-hero live-home-hero"><div className="shell hero-grid"><div className="hero-copy">
-      <div className="kicker"><span className="live-dot"/> New Zealand community fundraising</div><h1>Help where it matters.</h1>
-      <p>Good Cause gives people a straightforward way to support reviewed community and humanitarian causes, see real progress and follow where the money goes.</p>
+      <div className="kicker"><span className="live-dot"/> New Zealand community fundraising</div><h1>Help where it matters.<span className="h1-sub">Online fundraising for New Zealand causes</span></h1>
+      <p>Start a free fundraiser or donate online to reviewed community and humanitarian causes across Aotearoa. See real progress, follow where the money goes, and know the cause receives 97.5% of every donation.</p>
       <div className="hero-actions"><Link className="button" href="#live-causes">Support a live cause</Link><Link className="button secondary" href="/start">Start a cause</Link></div>
       <div className="trust-strip"><span>Secure Stripe checkout</span><span>Campaigns reviewed before going live</span></div>
     </div>

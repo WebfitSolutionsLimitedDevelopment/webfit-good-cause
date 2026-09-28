@@ -130,3 +130,4 @@
 .related-guides a{color:var(--blue);text-decoration:underline}
 a.guide-card{display:flex;flex-direction:column;padding:22px;color:inherit}
 a.guide-card:hover{border-color:var(--green)}
+.h1-sub{display:block;font-size:.42em;letter-spacing:-.01em;line-height:1.25;margin-top:.4em;color:var(--green-dark);font-weight:800}

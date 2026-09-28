@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from 'react';
 import { CampaignShareTools } from '@/components/CampaignShareTools';
+import { donorPaysBreakdown, money } from '@/lib/fees';
 
 export function DonatePanel({campaignSlug, enabled}:{campaignSlug:string; enabled:boolean}){
   const isOneMoreGift=campaignSlug==='one-more-gift-2026';
@@ -36,6 +37,8 @@ export function DonatePanel({campaignSlug, enabled}:{campaignSlug:string; enable
     }catch(err){setError(err instanceof Error?err.message:'Unable to start donation checkout.');setLoading(false);}
   }
 
+  const fees=useMemo(()=>donorPaysBreakdown(Math.round((Number.isFinite(amount)&&amount>0?amount:0)*100)),[amount]);
+
   const previewName=anonymous?'Anonymous supporter':(name.trim()||'Your name');
 
   return <form className="donate-panel" onSubmit={submit}>
@@ -49,7 +52,13 @@ export function DonatePanel({campaignSlug, enabled}:{campaignSlug:string; enable
     </div>
     <label className="donor-privacy-check"><input type="checkbox" checked={anonymous} onChange={e=>setAnonymous(e.target.checked)}/><span><strong>Hide my name publicly</strong><small>Your name will still be securely recorded for the contribution receipt and payment records. The campaign activity will show “Anonymous supporter”.</small></span></label>
     {(message.trim()||name.trim())&&<div className="donation-preview" aria-label="Public contribution preview"><small>Public preview</small><div className="donation-preview-card"><div className="donor-avatar">{anonymous?'A':(name.trim().charAt(0).toUpperCase()||'G')}</div><div><strong>{previewName}</strong>{message.trim()&&<p>{message.trim()}</p>}<b>NZ${Number.isFinite(amount)?amount:0}</b></div></div></div>}
-    <button className="button donate-button" type="submit" disabled={loading||!valid}>{loading?'Opening secure checkout...':'Continue to secure payment'}</button>
+    <div className="fee-lines donation-fee-summary" aria-live="polite">
+      <div><span>Your donation</span><strong>{money(fees.donationCents/100)}</strong></div>
+      <div><span>Card processing fee</span><strong>{money(fees.cardFeeCents/100)}</strong></div>
+      <div className="total"><span>You pay</span><strong>{money(fees.totalChargedCents/100)}</strong></div>
+      <p className="fineprint">The card fee covers the payment provider&rsquo;s cost. The cause receives {money(fees.toCauseCents/100)}, which is your donation less the Good Cause 2.5% platform fee. <a href="/fees">How fees work</a></p>
+    </div>
+    <button className="button donate-button" type="submit" disabled={loading||!valid}>{loading?'Opening secure checkout...':`Pay ${money(fees.totalChargedCents/100)} securely`}</button>
     {error&&<p className="form-error">{error}</p>}
     {isOneMoreGift&&<p className="fineprint"><strong>There is no right amount.</strong> Give what feels comfortable. A small contribution is still a meaningful act of kindness.</p>}
     <p className="fineprint">Your email address and mobile number are private and are not displayed on the public campaign page. A contribution receipt is emailed after successful payment.</p>

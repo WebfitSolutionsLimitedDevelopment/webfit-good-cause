@@ -39,6 +39,8 @@ export function buildContributionReceiptPdf(input: {
   donorName: string;
   campaignTitle: string;
   amountCents: number;
+  donationCents?: number;
+  cardFeeCents?: number;
   paidAt: string;
   processorReference: string;
   supportEmail: string;
@@ -69,7 +71,7 @@ export function buildContributionReceiptPdf(input: {
 
   text(42, 660, 12, `Thank you, ${input.donorName}. Your contribution has been successfully received.`);
   fill(42, 585, 511, 58, '0.96 0.98 0.96');
-  text(58, 617, 10, 'CONTRIBUTION AMOUNT', true, '0.34 0.43 0.39');
+  text(58, 617, 10, input.cardFeeCents ? 'TOTAL PAID' : 'CONTRIBUTION AMOUNT', true, '0.34 0.43 0.39');
   text(58, 594, 22, money(input.amountCents), true, '0.07 0.27 0.20');
 
   let y = 550;
@@ -82,6 +84,10 @@ export function buildContributionReceiptPdf(input: {
   };
 
   row('Receipt number', input.receiptNumber);
+  if (input.cardFeeCents && input.donationCents !== undefined) {
+    row('Donation to cause', money(input.donationCents));
+    row('Card processing fee', money(input.cardFeeCents));
+  }
   row('Contributor', input.donorName);
   row('Cause', input.campaignTitle);
   row('Payment date', input.paidAt);

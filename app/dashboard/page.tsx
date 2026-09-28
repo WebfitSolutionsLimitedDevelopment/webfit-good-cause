@@ -12,7 +12,7 @@ export default async function Dashboard(){
   const campaigns=campaignsData??[];
 
   return <>
-    <section className="cms-admin-header"><div className="shell cms-admin-header-row"><div><div className="eyebrow">{isSuperAdmin?'Good Cause CMS':'Fundraiser dashboard'}</div><h1>{isSuperAdmin?'Campaign management':'My campaigns'}</h1><p>{isSuperAdmin?'Manage campaign content, images, donations, updates and payouts.':'Manage your campaigns, updates and payout progress.'}</p></div>{isSuperAdmin&&<span className="cms-role-badge">Super Admin</span>}</div></section>
+    <section className="cms-admin-header"><div className="shell cms-admin-header-row"><div><div className="eyebrow">{isSuperAdmin?'Good Cause CMS':'Fundraiser dashboard'}</div><h1>{isSuperAdmin?'Campaign management':'My campaigns'}</h1><p className="muted">Signed in as {user.email}{isSuperAdmin?' (super admin)':''} · <a className="text-link" href="/auth/signout">Log out</a></p><p>{isSuperAdmin?'Manage campaign content, images, donations, updates and payouts.':'Manage your campaigns, updates and payout progress.'}</p></div>{isSuperAdmin&&<span className="cms-role-badge">Super Admin</span>}</div></section>
     <section className="cms-section"><div className="shell">
       <div className="cms-toolbar professional"><div><Link className="button" href="/start">Create campaign</Link><Link className="button secondary" href="/dashboard/notifications">Notifications</Link>{isSuperAdmin&&<Link className="button secondary" href="/admin">Admin centre</Link>}</div></div>
       {campaigns.length===0?<div className="card empty-state"><h2>No campaigns yet</h2><p>Create your first cause.</p><Link className="button" href="/start">Start a cause</Link></div>:

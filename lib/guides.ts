@@ -41,7 +41,7 @@ export const GUIDES: Guide[] = [
   {
     slug: 'fundraising-in-auckland',
     title: 'Fundraising in Auckland: online and in person',
-    metaTitle: 'Fundraising in Auckland: online, events and council rules',
+    metaTitle: 'Fundraising in Auckland: online, events and permits',
     description: 'How to raise money in Auckland, from online fundraising pages to street collections, events and raffles, including when you need Auckland Council approval.',
     keywords: ['fundraising Auckland', 'Auckland fundraiser', 'donate Auckland', 'street collection Auckland permit', 'Auckland community fundraising', 'charity events Auckland'],
     updated: UPDATED,
@@ -184,7 +184,7 @@ export const GUIDES: Guide[] = [
   {
     slug: 'donation-tax-credits-nz',
     title: 'Can I claim a tax credit on my donation?',
-    metaTitle: 'Donation tax credits NZ: what qualifies and how to claim',
+    metaTitle: 'Donation tax credits NZ: what qualifies and how',
     description: 'How New Zealand donation tax credits work, which donations qualify, why gifts to individuals do not, and how to claim from Inland Revenue.',
     keywords: ['donation tax credit NZ', 'IRD donation rebate', 'are donations tax deductible NZ', 'claim donation receipt IRD', 'approved donee organisation'],
     updated: UPDATED,
@@ -205,7 +205,7 @@ export const GUIDES: Guide[] = [
   {
     slug: 'fundraising-rules-nz',
     title: 'Fundraising rules in New Zealand',
-    metaTitle: 'Fundraising rules NZ: raffles, collections and charities',
+    metaTitle: 'Fundraising rules NZ: raffles, collections, charities',
     description: 'The main rules for fundraising in New Zealand: raffles and gambling limits, street collections, registered charities, privacy and honest appeals.',
     keywords: ['fundraising rules NZ', 'raffle rules NZ', 'do I need a licence for a raffle NZ', 'street collection rules NZ', 'is it legal to fundraise NZ'],
     updated: UPDATED,
@@ -369,7 +369,7 @@ export const GUIDES: Guide[] = [
   {
     slug: 'community-project-fundraising',
     title: 'Fundraising for community projects: marae, churches and halls',
-    metaTitle: 'Community project fundraising in NZ: marae, church, hall',
+    metaTitle: 'Community fundraising NZ: marae, church, halls',
     description: 'How New Zealand community groups raise money for marae, church, community hall, playground and neighbourhood projects, combining online giving, events and grants.',
     keywords: ['community fundraising NZ', 'marae fundraising', 'church fundraising ideas', 'community hall fundraiser', 'playground fundraiser NZ', 'neighbourhood project fundraising'],
     updated: UPDATED,

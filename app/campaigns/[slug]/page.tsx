@@ -15,7 +15,7 @@ export async function generateMetadata({params}:{params:Promise<{slug:string}>})
   const c=await getPublicCampaign(slug).catch(()=>null);
   if(!c) return pageMeta({path:`/campaigns/${slug}`,title:'Fundraiser not found',description:'This fundraiser is not available.',noindex:true});
   const progress=c.goal>0?` ${money(c.raised)} raised of ${money(c.goal)}.`:` ${money(c.raised)} raised.`;
-  const description=`${(c.summary||c.story||'').replace(/\s+/g,' ').trim().slice(0,150)}${progress} Donate securely on Good Cause.`.trim();
+  const description=`${(c.summary||c.story||'').replace(/\s+/g,' ').trim().slice(0,105)}${progress} Donate securely on Good Cause.`.trim();
   return pageMeta({path:`/campaigns/${c.slug}`,title:`${c.title} – donate`,description,type:'article',image:absoluteUrl(`/campaigns/${c.slug}/opengraph-image`),keywords:[c.title,`${c.category} fundraiser`,`${c.location} fundraiser`,'donate','fundraiser NZ'].filter(Boolean)});
 }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient, createServiceClient } from '@/lib/supabase-server';
-import { sendEmail } from '@/lib/email';
+import { sendEmail, workflowEmailHtml } from '@/lib/email';
+import { SITE } from '@/lib/constants';
 import { createNotification, notifyAdmins } from '@/lib/notifications';
 
 function slugify(value:string){return value.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,70)}
@@ -18,7 +19,7 @@ export async function POST(request:Request){
   await service.from('compliance_checks').insert(checks);
   await service.from('policy_acceptances').insert(['terms','fundraising_policy','privacy','acceptable_use'].map(policy_key=>({user_id:user.id,campaign_id:c.id,policy_key,policy_version:'2026-08-30'})));
   await service.from('audit_events').insert({actor_user_id:user.id,campaign_id:c.id,event_type:'campaign_submitted',entity_type:'campaign',entity_id:c.id,metadata:{reference_code:ref,risk_level:enhanced?'enhanced':'standard'}});
-  if(user.email) await sendEmail({to:user.email,subject:`Good Cause application ${ref} received`,html:`<p>Thank you for submitting <strong>${body.title}</strong>.</p><p>Your reference is <strong>${ref}</strong>. Sign in to your fundraiser dashboard to upload evidence and follow the review.</p>`}).catch(()=>null);
+  if(user.email) await sendEmail({to:user.email,subject:`Good Cause application ${ref} received`,html:workflowEmailHtml({heading:'We have received your application',reference:ref,message:`Thank you for submitting "${String(body.title||'your campaign')}".\nNext step: upload your verification documents (photo ID, proof of bank account, and evidence of the cause) from your dashboard. We start the review once these are in.\nWe will email you at each step: when we need more information, and when your campaign is approved or declined.`,ctaLabel:'Upload documents',ctaUrl:`${SITE.url.replace(/\/$/,'')}/dashboard/campaigns/${c.id}`})}).catch(error=>console.error('application_email_failed',String(error)));
   await createNotification({userId:user.id,campaignId:c.id,type:'campaign_submitted',title:`Application ${ref} received`,message:`${body.title} has been submitted for Good Cause review. Upload any requested verification evidence from your dashboard.`,email:null});
   await notifyAdmins({campaignId:c.id,type:'new_campaign_application',title:`New Good Cause application: ${ref}`,message:`${body.title} has been submitted for ${enhanced?'enhanced':'standard'} review. Review the campaign, documents, beneficiary and payment destination in the admin portal.`});
   return NextResponse.json({ok:true,id:c.id,referenceCode:ref});

@@ -6,6 +6,18 @@ import { SITE } from '@/lib/constants';
 import { DonatePanel } from '@/components/DonatePanel';
 import { DonorWall } from '@/components/DonorWall';
 import { createServiceClient } from '@/lib/supabase-server';
+import type { Metadata } from 'next';
+import { absoluteUrl, breadcrumbJsonLd, pageMeta } from '@/lib/seo';
+import { JsonLd } from '@/components/seo/JsonLd';
+
+export async function generateMetadata({params}:{params:Promise<{slug:string}>}):Promise<Metadata>{
+  const {slug}=await params;
+  const c=await getPublicCampaign(slug).catch(()=>null);
+  if(!c) return pageMeta({path:`/campaigns/${slug}`,title:'Fundraiser not found',description:'This fundraiser is not available.',noindex:true});
+  const progress=c.goal>0?` ${money(c.raised)} raised of ${money(c.goal)}.`:` ${money(c.raised)} raised.`;
+  const description=`${(c.summary||c.story||'').replace(/\s+/g,' ').trim().slice(0,150)}${progress} Donate securely on Good Cause.`.trim();
+  return pageMeta({path:`/campaigns/${c.slug}`,title:`${c.title} – donate`,description,type:'article',keywords:[c.title,`${c.category} fundraiser`,`${c.location} fundraiser`,'donate','fundraiser NZ'].filter(Boolean)});
+}
 
 export default async function CampaignPage({params}:{params:Promise<{slug:string}>}){
   const {slug}=await params;
@@ -26,7 +38,18 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
   const cover=imageMedia.find((m:any)=>m.is_primary) ?? imageMedia[0] ?? null;
   const galleryMedia=media.filter((m:any)=>m.id!==cover?.id);
 
+  const pageUrl=absoluteUrl(`/campaigns/${c.slug}`);
+  const campaignLd={
+    '@context':'https://schema.org','@type':'WebPage','@id':`${pageUrl}#fundraiser`,url:pageUrl,name:c.title,
+    description:c.summary,inLanguage:'en-NZ',isPartOf:{'@id':absoluteUrl('/#website')},
+    about:{'@type':'Thing',name:c.category},
+    ...(c.launchedAt?{datePublished:c.launchedAt}:{}),
+    potentialAction:{'@type':'DonateAction',name:`Donate to ${c.title}`,target:pageUrl,priceCurrency:'NZD',recipient:{'@type':'Organization',name:c.beneficiary||c.title}},
+  };
+
   return <div className="shell campaign-detail">
+    <JsonLd data={campaignLd}/>
+    <JsonLd data={breadcrumbJsonLd([{name:'Home',path:'/'},{name:'Fundraisers',path:'/campaigns'},{name:c.title,path:`/campaigns/${c.slug}`}])}/>
     <article className="campaign-main">
       <div className="campaign-identity">
         <div className="eyebrow">{c.location}</div>

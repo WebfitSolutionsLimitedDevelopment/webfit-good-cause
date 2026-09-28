@@ -1,3 +1,5 @@
+import { pageMeta } from '@/lib/seo';
+export const metadata = pageMeta({ path: '/contact', title: 'Contact Good Cause', description: 'Get in touch with the Good Cause team about a fundraiser, a donation or a payout.', keywords: ['contact fundraising support NZ'] });
 export default function Page(){
   const support=process.env.GOODCAUSE_SUPPORT_EMAIL||process.env.RESEND_REPLY_TO_EMAIL||'support@goodcause.webfitnews.co.nz';
   const complaints=process.env.GOODCAUSE_COMPLIANCE_EMAIL||'complaints@goodcause.webfitnews.co.nz';

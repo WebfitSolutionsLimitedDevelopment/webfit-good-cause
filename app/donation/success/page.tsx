@@ -2,6 +2,8 @@ import Link from 'next/link';
 import Stripe from 'stripe';
 import { processPaidSession } from '@/lib/process-paid-session';
 
+import { pageMeta } from '@/lib/seo';
+export const metadata = pageMeta({ path: '/donation/success', title: 'Thank you', description: 'Good Cause account access.', noindex: true });
 export const dynamic = 'force-dynamic';
 
 type Props = { searchParams: Promise<{ session_id?: string }> };

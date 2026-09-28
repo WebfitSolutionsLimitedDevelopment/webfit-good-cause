@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { SITE } from '@/lib/constants';
 import { createServiceClient } from '@/lib/supabase-server';
+import { donorPaysBreakdown, FEE_MODEL_DONOR_PAYS } from '@/lib/fees';
 
 export const runtime = 'nodejs';
 
@@ -63,6 +64,7 @@ export async function POST(req: NextRequest) {
     }
 
     const amountCents = Math.round(amount * 100);
+    const fees = donorPaysBreakdown(amountCents);
     const stripe = new Stripe(key);
     const requestOrigin = new URL(req.url).origin;
     const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
@@ -88,11 +90,25 @@ export async function POST(req: NextRequest) {
             },
           },
         },
+        {
+          quantity: 1,
+          price_data: {
+            currency: 'nzd',
+            unit_amount: fees.cardFeeCents,
+            product_data: {
+              name: 'Card processing fee',
+              description: 'Covers the payment provider cost so the cause receives 97.5% of your donation',
+            },
+          },
+        },
       ],
       payment_intent_data: {
         metadata: {
           campaign_id: campaign.id,
           platform_fee_rate: '0.025',
+          fee_model: FEE_MODEL_DONOR_PAYS,
+          donation_amount_cents: String(amountCents),
+          donor_card_fee_cents: String(fees.cardFeeCents),
           donor_name: donorName,
           donor_email: donorEmail,
           donor_mobile: donorMobile,
@@ -105,6 +121,8 @@ export async function POST(req: NextRequest) {
         campaign_slug: campaign.slug,
         campaign_title: campaign.title,
         donation_amount_cents: String(amountCents),
+        fee_model: FEE_MODEL_DONOR_PAYS,
+        donor_card_fee_cents: String(fees.cardFeeCents),
         donor_name: donorName,
         donor_email: donorEmail,
         donor_mobile: donorMobile,

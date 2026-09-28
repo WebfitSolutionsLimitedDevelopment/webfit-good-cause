@@ -2,6 +2,7 @@ import { revalidatePath } from 'next/cache';
 import { requireStaff } from '@/lib/auth';
 import { createServiceClient } from '@/lib/supabase-server';
 import { AdminNav } from '@/components/admin/AdminNav';
+import { notifyCampaignOwner } from '@/lib/notifications';
 
 export default async function Page() {
   await requireStaff(['finance', 'admin', 'super_admin']);
@@ -19,6 +20,11 @@ export default async function Page() {
     if (!['held', 'under_review', 'approved', 'paid', 'reversed'].includes(status)) return;
     if (status === 'paid' && !bankTransferReference) return;
 
+    const { data: payout } = await service.from('payouts').select('campaign_id,amount_cents,status,payment_destinations(verification_status)').eq('id', id).maybeSingle();
+    if (!payout) return;
+    // A payout can only be approved or paid to a verified bank destination.
+    if ((status === 'approved' || status === 'paid') && (payout as any).payment_destinations?.verification_status !== 'verified') return;
+
     await service.from('payouts').update({
       status,
       bank_transfer_reference: bankTransferReference || null,
@@ -34,6 +40,10 @@ export default async function Page() {
       entity_id: id,
       metadata: { status, bank_transfer_reference: bankTransferReference || null, payout_method: 'manual_bank_transfer' },
     });
+    if (status === 'paid' && payout.status !== 'paid') {
+      const amount = new Intl.NumberFormat('en-NZ', { style: 'currency', currency: 'NZD' }).format(Number(payout.amount_cents) / 100);
+      await notifyCampaignOwner({ campaignId: payout.campaign_id, type: 'payout_paid', title: `Payout sent: ${amount}`, message: `We have transferred ${amount} to the verified bank account for this campaign. Bank reference: ${bankTransferReference}. It can take 1 to 2 business days to appear.`, link: `/dashboard/campaigns/${payout.campaign_id}/payouts`, ctaLabel: 'View payouts' });
+    }
     revalidatePath('/admin/payouts');
   }
 

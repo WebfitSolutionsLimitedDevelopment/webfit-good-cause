@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 import { createServiceClient } from '@/lib/supabase-server';
 import { adminContributionHtml, contributionReceiptEmailHtml, sendEmail } from '@/lib/email';
 import { buildContributionReceiptPdf } from '@/lib/receipt-pdf';
-import { SITE } from '@/lib/constants';
+import { FEE_MODEL_DONOR_PAYS, platformFeeCents } from '@/lib/fees';
 import { createNotification, notifyAdmins } from '@/lib/notifications';
 
 function receiptNumber(sessionId: string, created: number) {
@@ -30,10 +30,31 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
   if (!charge) return;
 
   const balance = charge.balance_transaction as Stripe.BalanceTransaction | null;
-  const gross = charge.amount;
+  const chargedTotal = charge.amount;
   const processorFee = balance?.fee ?? 0;
-  const platformFee = Math.round(gross * SITE.platformFeeRate);
-  const net = Math.max(0, gross - processorFee - platformFee);
+
+  // Donor-pays model: the donor paid donation + card fee. The cause receives the donation
+  // less the platform fee; Good Cause absorbs any gap between the collected card fee and
+  // Stripe's actual fee. Sessions created before this model use the legacy calculation.
+  const donorPays = session.metadata?.fee_model === FEE_MODEL_DONOR_PAYS;
+  let gross: number;
+  let donorCardFee = 0;
+  let net: number;
+  let platformFee: number;
+  if (donorPays) {
+    donorCardFee = Math.max(0, Number(session.metadata?.donor_card_fee_cents || 0));
+    const declaredDonation = Number(session.metadata?.donation_amount_cents || 0);
+    gross = chargedTotal - donorCardFee;
+    if (declaredDonation && declaredDonation !== gross) {
+      console.error('donation_amount_mismatch', { session: session.id, declaredDonation, chargedTotal, donorCardFee });
+    }
+    platformFee = platformFeeCents(gross);
+    net = Math.max(0, gross - platformFee);
+  } else {
+    gross = chargedTotal;
+    platformFee = platformFeeCents(gross);
+    net = Math.max(0, gross - processorFee - platformFee);
+  }
 
   const donorName = session.metadata?.donor_name || session.customer_details?.name || 'Supporter';
   const donorEmail = session.metadata?.donor_email || session.customer_details?.email || '';
@@ -42,10 +63,7 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
   const anonymous = session.metadata?.anonymous === 'true';
   const receipt = receiptNumber(session.id, session.created);
 
-  const { data: donation, error } = await db
-    .from('donations')
-    .upsert(
-      {
+  const donationRow: Record<string, unknown> = {
         campaign_id: campaignId,
         amount_cents: gross,
         platform_fee_cents: platformFee,
@@ -63,13 +81,23 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
         message: donorMessage || null,
         receipt_number: receipt,
         paid_at: new Date((charge.created || session.created) * 1000).toISOString(),
-      },
-      { onConflict: 'stripe_checkout_session_id' },
-    )
+  };
+  if (donorPays) donationRow.donor_card_fee_cents = donorCardFee;
+
+  const upsertDonation = (row: Record<string, unknown>) => db
+    .from('donations')
+    .upsert(row, { onConflict: 'stripe_checkout_session_id' })
     .select('id,receipt_sent_at')
     .single();
 
-  if (error) throw error;
+  let { data: donation, error } = await upsertDonation(donationRow);
+  if (error && donorPays && /donor_card_fee_cents/.test(error.message || '')) {
+    // Never lose a paid donation record if the column migration has not been applied yet.
+    console.error('donor_card_fee_column_missing', error.message);
+    const { donor_card_fee_cents: _omit, ...legacyRow } = donationRow;
+    ({ data: donation, error } = await upsertDonation(legacyRow));
+  }
+  if (error || !donation) throw error || new Error('Donation upsert returned no row');
 
   if (donorEmail && !existing?.receipt_sent_at && !donation?.receipt_sent_at) {
     const { data: campaign } = await db.from('campaigns').select('title').eq('id', campaignId).maybeSingle();
@@ -86,7 +114,9 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
       receiptNumber: receipt,
       donorName,
       campaignTitle,
-      amountCents: gross,
+      amountCents: chargedTotal,
+      donationCents: donorPays ? gross : undefined,
+      cardFeeCents: donorPays ? donorCardFee : undefined,
       paidAt,
       processorReference: intent.id,
       supportEmail,
@@ -112,7 +142,7 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
   if (existing?.status !== 'succeeded') {
     const { data: campaign } = await db
       .from('campaigns')
-      .select('title,reference_code,owner_id,beneficiary_id,payment_destination_id,profiles!campaigns_owner_id_fkey(email)')
+      .select('title,reference_code,owner_id,beneficiary_id,payment_destination_id')
       .eq('id', campaignId)
       .maybeSingle();
 
@@ -124,7 +154,7 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
         .maybeSingle();
 
       if (!priorPayout) {
-        await db.from('payouts').insert({
+        const { error: payoutError } = await db.from('payouts').insert({
           campaign_id: campaignId,
           donation_id: donation.id,
           beneficiary_id: campaign.beneficiary_id,
@@ -133,6 +163,7 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
           status: 'pending',
           requested_at: new Date().toISOString(),
         });
+        if (payoutError) console.error('payout_ledger_insert_failed', { donation: donation.id, error: payoutError.message });
       }
     }
 
@@ -144,7 +175,7 @@ export async function processPaidSession(stripe: Stripe, session: Stripe.Checkou
       campaignId,
       type: 'donation_received',
       title: `New contribution received: ${amount}`,
-      message: `Your campaign ${(campaign as any)?.title || ''} received ${amount}. Receipt ${receipt} has been issued to the contributor. ${netAmount} is recorded as the campaign's pending payout amount after the Good Cause platform fee and Stripe processing cost.`,
+      message: `Your campaign ${(campaign as any)?.title || ''} received ${amount}. Receipt ${receipt} has been issued to the contributor. ${netAmount} is recorded as the campaign's pending payout amount after the Good Cause platform fee${donorPays ? '. The card processing fee was paid by the contributor' : ' and Stripe processing cost'}.`,
     });
 
     await notifyAdmins({

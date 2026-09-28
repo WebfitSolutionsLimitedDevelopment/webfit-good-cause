@@ -28,7 +28,6 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
     '@context': 'https://schema.org', '@type': 'Article', headline: g.title, description: g.description, url,
     mainEntityOfPage: url, inLanguage: 'en-NZ', datePublished: g.updated, dateModified: g.updated, keywords: g.keywords.join(', '),
     author: { '@type': 'Organization', name: 'Good Cause', url: absoluteUrl('/about') },
-    reviewedBy: { '@type': 'Organization', name: 'Good Cause', url: absoluteUrl('/about') },
     isAccessibleForFree: true,
     publisher: { '@id': absoluteUrl('/#organization') },
   };

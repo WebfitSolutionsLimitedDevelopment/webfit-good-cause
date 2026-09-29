@@ -22,5 +22,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en-NZ"><body><JsonLd data={ORGANIZATION_JSONLD}/><JsonLd data={WEBSITE_JSONLD}/><Header /><main>{children}</main><Footer /></body></html>;
+  return <html lang="en-NZ"><body><a className="skip-link" href="#main-content">Skip to content</a><JsonLd data={ORGANIZATION_JSONLD}/><JsonLd data={WEBSITE_JSONLD}/><Header /><main id="main-content">{children}</main><Footer /></body></html>;
 }

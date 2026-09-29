@@ -5,6 +5,7 @@ import { createServiceClient } from '@/lib/supabase-server';
 import { AdminNav } from '@/components/admin/AdminNav';
 import { notifyCampaignOwner } from '@/lib/notifications';
 import { pingIndexNow } from '@/lib/indexnow';
+import { notifyFollowers } from '@/lib/followers';
 
 export default async function Page({params}:{params:Promise<{id:string}>}){
   const {id}=await params;const staff=await requireStaff(['reviewer','admin','super_admin']);const s=createServiceClient();
@@ -87,7 +88,10 @@ export default async function Page({params}:{params:Promise<{id:string}>}){
   async function reviewUpdate(formData:FormData){
     'use server';const current=await requireStaff(['reviewer','admin','super_admin']);const db=createServiceClient();const updateId=String(formData.get('updateId')||'');const decision=String(formData.get('decision')||'');const note=String(formData.get('note')||'').trim();
     await db.from('campaign_updates').update({status:decision==='approve'?'approved':'rejected',reviewer_note:note||null,reviewed_by:current.user.id,reviewed_at:new Date().toISOString(),published_at:decision==='approve'?new Date().toISOString():new Date().toISOString()}).eq('id',updateId).eq('campaign_id',id);
-    await db.from('audit_events').insert({actor_user_id:current.user.id,campaign_id:id,event_type:`campaign_update_${decision}`,entity_type:'campaign_update',entity_id:updateId,metadata:{note}});await notifyOwner(`Campaign update ${decision==='approve'?'approved':'not approved'}`,note||'Your campaign update has been reviewed.','campaign_update_reviewed');revalidatePath(`/admin/campaigns/${id}`);
+    await db.from('audit_events').insert({actor_user_id:current.user.id,campaign_id:id,event_type:`campaign_update_${decision}`,entity_type:'campaign_update',entity_id:updateId,metadata:{note}});
+    let followersEmailed=0;
+    if(decision==='approve'){const {data:upd}=await db.from('campaign_updates').select('title,body').eq('id',updateId).maybeSingle();if(upd)followersEmailed=await notifyFollowers(id,{title:upd.title,body:upd.body||''});}
+    await notifyOwner(`Campaign update ${decision==='approve'?'approved':'not approved'}`,`${note||'Your campaign update has been reviewed.'}${decision==='approve'&&followersEmailed?` It was emailed to ${followersEmailed} follower${followersEmailed===1?'':'s'}.`:''}`,'campaign_update_reviewed');revalidatePath(`/admin/campaigns/${id}`);
   }
 
   return <section className="section"><div className="shell"><h1>{c.title}</h1><p className="muted">{c.reference_code} · Owner: {c.profiles?.full_name||c.profiles?.email}</p><AdminNav/><div className="dashboard-toolbar"><a className="button secondary" href={`/admin/campaigns/${id}/edit`}>Master edit</a></div><div className="case-layout"><main>

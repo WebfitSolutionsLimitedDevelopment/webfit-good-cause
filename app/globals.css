@@ -141,3 +141,7 @@ a.guide-card:hover{border-color:var(--green)}
 .explore-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .chip{padding:7px 12px;border:1px solid var(--line);border-radius:99px;background:#fff;font-size:14px;font-weight:700}
 .chip.active{background:var(--green);border-color:var(--green);color:#fff}
+.follow-campaign{padding:18px;margin-top:18px}
+.follow-campaign h3{margin:0 0 6px;font-size:18px}
+.follow-row{display:flex;gap:8px;flex-wrap:wrap}
+.follow-row input[type=email]{flex:1 1 180px;padding:11px 12px;border:1px solid #cbd7cf;border-radius:10px;font:inherit}

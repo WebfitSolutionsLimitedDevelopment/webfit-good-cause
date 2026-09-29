@@ -52,6 +52,7 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
     <JsonLd data={campaignLd}/>
     <JsonLd data={breadcrumbJsonLd([{name:'Home',path:'/'},{name:'Fundraisers',path:'/campaigns'},{name:c.title,path:`/campaigns/${c.slug}`}])}/>
     <article className="campaign-main">
+      <nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">Home</Link> / <Link href="/campaigns">Fundraisers</Link></nav>
       <div className="campaign-identity">
         <div className="eyebrow">{c.location}</div>
         <h1 className="campaign-title">{c.title}</h1>

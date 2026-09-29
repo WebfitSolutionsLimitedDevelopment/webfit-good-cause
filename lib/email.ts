@@ -9,7 +9,7 @@ export type EmailSendResult = {
   skipped?: boolean;
 };
 
-export async function sendEmail(input:{to:string|string[];subject:string;html:string;text?:string;attachments?:EmailAttachment[]}):Promise<EmailSendResult> {
+export async function sendEmail(input:{to:string|string[];subject:string;html:string;text?:string;attachments?:EmailAttachment[];headers?:Record<string,string>}):Promise<EmailSendResult> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const from = process.env.RESEND_FROM_EMAIL?.trim();
   const replyTo = process.env.RESEND_REPLY_TO_EMAIL?.trim();
@@ -28,6 +28,7 @@ export async function sendEmail(input:{to:string|string[];subject:string;html:st
   if (input.text) payload.text = input.text;
   if (input.attachments?.length) payload.attachments = input.attachments;
   if (replyTo) payload.reply_to = replyTo;
+  if (input.headers) payload.headers = input.headers;
 
   const response = await fetch('https://api.resend.com/emails', {
     method:'POST',
@@ -68,4 +69,18 @@ export function workflowEmailHtml(input:{heading:string;message:string;ctaLabel?
   const ref=input.reference?`<p style="margin:0 0 14px;font-size:13px;color:#5c6e64">Reference: <strong>${escapeHtml(input.reference)}</strong></p>`:'';
   const cta=input.ctaUrl?`<p style="margin:22px 0 0"><a href="${escapeHtml(input.ctaUrl)}" style="display:inline-block;background:#287a42;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold">${escapeHtml(input.ctaLabel||'Open Good Cause')}</a></p>`:'';
   return `<!doctype html><html><body style="margin:0;background:#f4f7f4;font-family:Arial,sans-serif;color:#13283f"><div style="max-width:620px;margin:0 auto;padding:20px 12px"><div style="background:#fff;border:1px solid #dfe7df;border-radius:14px;overflow:hidden"><div style="padding:22px 24px;background:#123b2d;color:#fff"><div style="font-size:12px;letter-spacing:.09em;text-transform:uppercase">Good Cause</div><h1 style="margin:8px 0 0;font-size:22px;line-height:1.25">${escapeHtml(input.heading)}</h1></div><div style="padding:24px">${ref}${paragraphs}${cta}<p style="margin:24px 0 0;font-size:12px;line-height:1.6;color:#5c6e64">Good Cause is operated by Webfit Solutions Limited. You are receiving this because you have a Good Cause account.</p></div></div></div></body></html>`;
+}
+
+/** Resend batch API: up to 100 emails per request. Returns number accepted. */
+export async function sendEmailBatch(items:{to:string;subject:string;html:string;text?:string;headers?:Record<string,string>}[]):Promise<number>{
+  const apiKey=process.env.RESEND_API_KEY?.trim();const from=process.env.RESEND_FROM_EMAIL?.trim();const replyTo=process.env.RESEND_REPLY_TO_EMAIL?.trim();
+  if(!apiKey||!from){console.error('resend_not_configured');return 0;}
+  let accepted=0;
+  for(let i=0;i<items.length;i+=100){
+    const chunk=items.slice(i,i+100).map(m=>({from,to:[m.to],subject:m.subject,html:m.html,...(m.text?{text:m.text}:{}),...(m.headers?{headers:m.headers}:{}),...(replyTo?{reply_to:replyTo}:{})}));
+    const res=await fetch('https://api.resend.com/emails/batch',{method:'POST',headers:{'Authorization':`Bearer ${apiKey}`,'Content-Type':'application/json'},body:JSON.stringify(chunk)});
+    if(res.ok)accepted+=chunk.length;else console.error('resend_batch_failed',res.status,(await res.text()).slice(0,500));
+    if(i+100<items.length)await new Promise(r=>setTimeout(r,600));
+  }
+  return accepted;
 }

@@ -1,3 +1,4 @@
+import { FollowCampaign } from '@/components/FollowCampaign';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -160,6 +161,7 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
       </div>
 
       <DonatePanel campaignSlug={c.slug} enabled={SITE.paymentsEnabled}/>
+      <FollowCampaign campaignSlug={c.slug}/>
       <div className="stripe-note"><strong>Secure payment</strong><span>Checkout is processed by Stripe.</span></div>
     </aside>
   </div>;

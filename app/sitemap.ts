@@ -21,8 +21,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const g of GUIDES) entries.push({ url: `${SITE_URL}/guides/${g.slug}`, lastModified: new Date(g.updated), changeFrequency: 'monthly', priority: 0.7 });
   try {
     const db = createServiceClient();
-    const { data } = await db.from('campaigns').select('slug,updated_at').eq('status', 'live');
-    for (const c of data ?? []) entries.push({ url: `${SITE_URL}/campaigns/${c.slug}`, lastModified: c.updated_at ? new Date(c.updated_at) : now, changeFrequency: 'daily', priority: 0.9 });
+    const { data } = await db.from('campaigns').select('id,slug,updated_at').eq('status', 'live');
+    const ids = (data ?? []).map((c) => c.id);
+    const { data: media } = ids.length ? await db.from('campaign_media').select('id,campaign_id').in('campaign_id', ids).eq('kind', 'image').eq('status', 'approved') : { data: [] as { id: string; campaign_id: string }[] };
+    for (const c of data ?? []) {
+      const images = [`${SITE_URL}/campaigns/${c.slug}/opengraph-image`, ...(media ?? []).filter((m) => m.campaign_id === c.id).map((m) => `${SITE_URL}/api/media/${m.id}`)];
+      entries.push({ url: `${SITE_URL}/campaigns/${c.slug}`, lastModified: c.updated_at ? new Date(c.updated_at) : now, changeFrequency: 'daily', priority: 0.9, images });
+    }
   } catch (error) {
     console.error('sitemap_campaigns_failed', error);
   }

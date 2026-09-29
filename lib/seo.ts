@@ -33,7 +33,7 @@ export function pageMeta({ path, title, description, keywords = [], noindex, ima
     title,
     description,
     keywords: [...keywords, ...CORE_KEYWORDS].slice(0, 20),
-    alternates: { canonical: url, languages: { 'en-NZ': url } },
+    alternates: { canonical: url, languages: { 'en-NZ': url }, types: { 'application/rss+xml': [{ url: absoluteUrl('/feed.xml'), title: 'Good Cause fundraisers and guides' }] } },
     openGraph: {
       type,
       url,

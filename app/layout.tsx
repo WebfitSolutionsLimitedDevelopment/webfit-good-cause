@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   publisher: 'Webfit Solutions Limited',
   category: 'fundraising',
   formatDetection: { telephone: false },
+  alternates: { types: { 'application/rss+xml': [{ url: '/feed.xml', title: 'Good Cause fundraisers and guides' }] } },
   openGraph: { siteName: 'Good Cause', locale: 'en_NZ', type: 'website' },
   twitter: { card: 'summary_large_image' },
   ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ? { verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } } : {}),

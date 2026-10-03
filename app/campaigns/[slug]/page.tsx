@@ -164,7 +164,7 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
         {c.lastContributor&&<div className="latest-contribution"><span>Latest contribution</span><strong>{c.lastContributor}</strong></div>}
       </div>
 
-      <DonatePanel campaignSlug={c.slug} enabled={SITE.paymentsEnabled}/>
+      <DonatePanel campaignSlug={c.slug} enabled={SITE.paymentsEnabled} monthlyEnabled={SITE.monthlyGivingEnabled}/>
       <FollowCampaign campaignSlug={c.slug}/>
       <div className="stripe-note"><strong>Secure payment</strong><span>Checkout is processed by Stripe.</span></div>
     </aside>

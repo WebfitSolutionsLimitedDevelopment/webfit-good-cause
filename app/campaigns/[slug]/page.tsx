@@ -1,4 +1,5 @@
 import { FollowCampaign } from '@/components/FollowCampaign';
+import { getApprovedOrgForOwner } from '@/lib/organisations';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -33,6 +34,8 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
     s.from('campaign_media').select('id,kind,title,url,is_primary').eq('campaign_id',c.id).eq('status','approved').order('created_at',{ascending:false}),
     s.from('donations').select('id,amount_cents,donor_display_name,anonymous,message,paid_at,created_at').eq('campaign_id',c.id).eq('status','succeeded').order('paid_at',{ascending:false,nullsFirst:false}).order('created_at',{ascending:false})
   ]);
+  const {data:ownerRow}=await s.from('campaigns').select('owner_id').eq('id',c.id).maybeSingle();
+  const organiser=ownerRow?.owner_id?await getApprovedOrgForOwner(ownerRow.owner_id).catch(()=>null):null;
   const updates=updatesData??[];
   const media=mediaData??[];
   const donations=(donationData??[]) as any[];
@@ -58,6 +61,7 @@ export default async function CampaignPage({params}:{params:Promise<{slug:string
         <div className="eyebrow">{c.location}</div>
         <h1 className="campaign-title">{c.title}</h1>
         <p className="campaign-lead">{c.summary}</p>
+        {organiser&&<p className="muted">Organised by <Link href={`/organisations/${organiser.slug}`}>{organiser.name}</Link></p>}
       </div>
 
       {cover?<div className="campaign-cover"><Image quality={80} src={`/api/media/${cover.id}`} alt={cover.title||c.title} width={1400} height={933} sizes="(max-width: 850px) 100vw, 760px" priority/><div className="campaign-chip">{c.category}</div></div>:slug==='nepal-flash-flood-relief-2026'?<div className="campaign-cover"><Image src="/campaigns/nepal-flash-flood-relief-2026.png" alt="Flood damage in Nepal" width={1400} height={933} sizes="(max-width: 850px) 100vw, 760px" priority/><div className="campaign-chip">{c.category}</div></div>:<div className="campaign-hero-art nepal-visual large"><div className="mountain mountain-one"></div><div className="mountain mountain-two"></div><div className="river"></div><div className="campaign-chip">{c.category}</div></div>}

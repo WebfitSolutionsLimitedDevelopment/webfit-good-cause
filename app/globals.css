@@ -145,3 +145,7 @@ a.guide-card:hover{border-color:var(--green)}
 .follow-campaign h3{margin:0 0 6px;font-size:18px}
 .follow-row{display:flex;gap:8px;flex-wrap:wrap}
 .follow-row input[type=email]{flex:1 1 180px;padding:11px 12px;border:1px solid #cbd7cf;border-radius:10px;font:inherit}
+.org-stats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.org-stats>div{flex:1 1 150px;border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff}
+.org-stats strong{display:block;font-size:26px}
+.org-stats span{color:var(--muted);font-size:14px}

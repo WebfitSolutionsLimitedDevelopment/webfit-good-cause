@@ -21,6 +21,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const g of GUIDES) entries.push({ url: `${SITE_URL}/guides/${g.slug}`, lastModified: new Date(g.updated), changeFrequency: 'monthly', priority: 0.7 });
   try {
     const db = createServiceClient();
+    const { data: orgs } = await db.from('organisation_pages').select('slug,updated_at').eq('status', 'approved');
+    entries.push({ url: `${SITE_URL}/organisations`, lastModified: now, changeFrequency: 'weekly', priority: 0.6 });
+    for (const o of orgs ?? []) entries.push({ url: `${SITE_URL}/organisations/${o.slug}`, lastModified: new Date(o.updated_at), changeFrequency: 'weekly', priority: 0.7 });
     const { data } = await db.from('campaigns').select('id,slug,updated_at').eq('status', 'live');
     const ids = (data ?? []).map((c) => c.id);
     const { data: media } = ids.length ? await db.from('campaign_media').select('id,campaign_id').in('campaign_id', ids).eq('kind', 'image').eq('status', 'approved') : { data: [] as { id: string; campaign_id: string }[] };

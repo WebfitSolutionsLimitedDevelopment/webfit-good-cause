@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { processPaidSession } from '@/lib/process-paid-session';
+import { handleSubscriptionCheckout, markSubscriptionCancelled, markSubscriptionPastDue, processPaidInvoice } from '@/lib/recurring';
 
 export const runtime = 'nodejs';
 
@@ -26,7 +27,15 @@ export async function POST(req: NextRequest) {
 
   try {
     if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
-      await processPaidSession(stripe, event.data.object as Stripe.Checkout.Session);
+      const session = event.data.object as Stripe.Checkout.Session;
+      if (session.mode === 'subscription') await handleSubscriptionCheckout(stripe, session);
+      else await processPaidSession(stripe, session);
+    } else if (event.type === 'invoice.paid') {
+      await processPaidInvoice(stripe, event.data.object as Stripe.Invoice);
+    } else if (event.type === 'invoice.payment_failed') {
+      await markSubscriptionPastDue(event.data.object as Stripe.Invoice);
+    } else if (event.type === 'customer.subscription.deleted') {
+      await markSubscriptionCancelled(event.data.object as Stripe.Subscription);
     }
     return NextResponse.json({ received: true });
   } catch (error) {

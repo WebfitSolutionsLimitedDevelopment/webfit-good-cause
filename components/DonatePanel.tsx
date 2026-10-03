@@ -4,7 +4,8 @@ import { FormEvent, useMemo, useState } from 'react';
 import { CampaignShareTools } from '@/components/CampaignShareTools';
 import { donorPaysBreakdown, money } from '@/lib/fees';
 
-export function DonatePanel({campaignSlug, enabled}:{campaignSlug:string; enabled:boolean}){
+export function DonatePanel({campaignSlug, enabled, monthlyEnabled=false}:{campaignSlug:string; enabled:boolean; monthlyEnabled?:boolean}){
+  const [frequency,setFrequency]=useState<'once'|'monthly'>('once');
   const isOneMoreGift=campaignSlug==='one-more-gift-2026';
   const [amount,setAmount]=useState(isOneMoreGift?20:50);
   const [name,setName]=useState('');
@@ -30,7 +31,7 @@ export function DonatePanel({campaignSlug, enabled}:{campaignSlug:string; enable
     if(message.length>500){setError('Please keep your public message to 500 characters or fewer.');return;}
     setLoading(true);
     try{
-      const res=await fetch('/api/donations/create',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({campaignSlug,amount,donorName:name.trim(),donorEmail:email.trim(),donorMobile:mobile.trim(),donorMessage:message.trim(),anonymous})});
+      const res=await fetch('/api/donations/create',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({campaignSlug,frequency,amount,donorName:name.trim(),donorEmail:email.trim(),donorMobile:mobile.trim(),donorMessage:message.trim(),anonymous})});
       const data=await res.json();
       if(!res.ok||!data.url) throw new Error(data.error||'Unable to start donation checkout.');
       window.location.href=data.url;
@@ -42,6 +43,7 @@ export function DonatePanel({campaignSlug, enabled}:{campaignSlug:string; enable
   const previewName=anonymous?'Anonymous supporter':(name.trim()||'Your name');
 
   return <form className="donate-panel" onSubmit={submit}>
+    {monthlyEnabled&&<div className="frequency-toggle" role="radiogroup" aria-label="How often"><button type="button" role="radio" aria-checked={frequency==='once'} className={frequency==='once'?'preset active':'preset'} onClick={()=>setFrequency('once')}>One-off</button><button type="button" role="radio" aria-checked={frequency==='monthly'} className={frequency==='monthly'?'preset active':'preset'} onClick={()=>setFrequency('monthly')}>Monthly</button></div>}
     <div className="donation-preset-grid">{presets.map(v=><button type="button" key={v} className={amount===v?'preset active':'preset'} onClick={()=>setAmount(v)}>NZ${v}</button>)}</div>
     <label className="donation-custom">Or choose an amount<div className="money-field"><span>NZ$</span><input type="number" min={minimumAmount} max={maximumAmount} step="1" value={amount} onChange={e=>setAmount(Number(e.target.value))}/></div></label>
     <div className="donor-fields">
@@ -55,10 +57,11 @@ export function DonatePanel({campaignSlug, enabled}:{campaignSlug:string; enable
     <div className="fee-lines donation-fee-summary" aria-live="polite">
       <div><span>Your donation</span><strong>{money(fees.donationCents/100)}</strong></div>
       <div><span>Card processing fee</span><strong>{money(fees.cardFeeCents/100)}</strong></div>
-      <div className="total"><span>You pay</span><strong>{money(fees.totalChargedCents/100)}</strong></div>
+      <div className="total"><span>{frequency==='monthly'?'You pay each month':'You pay'}</span><strong>{money(fees.totalChargedCents/100)}</strong></div>
+      {frequency==='monthly'&&<p className="fineprint">Charged monthly until you stop it. Every receipt has a link to stop your gift at any time.</p>}
       <p className="fineprint">The card fee covers the payment provider&rsquo;s cost. The cause receives {money(fees.toCauseCents/100)}, which is your donation less the Good Cause 2.5% platform fee. <a href="/fees">How fees work</a></p>
     </div>
-    <button className="button donate-button" type="submit" disabled={loading||!valid}>{loading?'Opening secure checkout...':`Pay ${money(fees.totalChargedCents/100)} securely`}</button>
+    <button className="button donate-button" type="submit" disabled={loading||!valid}>{loading?'Opening secure checkout...':(frequency==='monthly'?`Give ${money(fees.totalChargedCents/100)} monthly`:`Pay ${money(fees.totalChargedCents/100)} securely`)}</button>
     {error&&<p className="form-error">{error}</p>}
     {isOneMoreGift&&<p className="fineprint"><strong>There is no right amount.</strong> Give what feels comfortable. A small contribution is still a meaningful act of kindness.</p>}
     <p className="fineprint">Your email address and mobile number are private and are not displayed on the public campaign page. A contribution receipt is emailed after successful payment.</p>

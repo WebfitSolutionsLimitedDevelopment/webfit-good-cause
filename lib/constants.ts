@@ -10,5 +10,6 @@ export const SITE = {
   cardFixedFee: 0.30,
   internationalCardRate: 0.035,
   currencyConversionRate: 0.02,
-  paymentsEnabled: process.env.PAYMENTS_ENABLED === 'true'
+  paymentsEnabled: process.env.PAYMENTS_ENABLED === 'true',
+  monthlyGivingEnabled: process.env.NEXT_PUBLIC_MONTHLY_GIVING_ENABLED === 'true'
 } as const;

@@ -29,6 +29,13 @@ export async function POST(req: NextRequest) {
     const donorMobile = clean(body.donorMobile, 40);
     const donorMessage = clean(body.donorMessage, 500);
     const anonymous = body.anonymous === true;
+    const monthly = body.frequency === 'monthly';
+    if (monthly && !SITE.monthlyGivingEnabled) {
+      return NextResponse.json({ error: 'Monthly giving is not available yet.' }, { status: 400 });
+    }
+    if (monthly && amount < 2) {
+      return NextResponse.json({ error: 'The minimum monthly gift is NZ$2.' }, { status: 400 });
+    }
 
     if (!Number.isFinite(amount) || amount < SITE.minimumDonation) {
       return NextResponse.json({ error: `Minimum donation is NZ$${SITE.minimumDonation}.` }, { status: 400 });
@@ -69,6 +76,28 @@ export async function POST(req: NextRequest) {
     const requestOrigin = new URL(req.url).origin;
     const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
     const publicBaseUrl = configuredUrl && !configuredUrl.includes('localhost') ? configuredUrl.replace(/\/$/, '') : requestOrigin;
+
+    if (monthly) {
+      const subMeta = {
+        campaign_id: campaign.id, campaign_slug: campaign.slug, fee_model: FEE_MODEL_DONOR_PAYS,
+        donation_amount_cents: String(amountCents), donor_card_fee_cents: String(fees.cardFeeCents),
+        donor_name: donorName, donor_email: donorEmail, donor_mobile: donorMobile, anonymous: String(anonymous), frequency: 'monthly',
+      };
+      const subSession = await stripe.checkout.sessions.create({
+        mode: 'subscription',
+        success_url: `${publicBaseUrl}/donation/success?monthly=1&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${publicBaseUrl}/campaigns/${campaign.slug}`,
+        customer_email: donorEmail,
+        billing_address_collection: 'auto',
+        line_items: [
+          { quantity: 1, price_data: { currency: 'nzd', unit_amount: amountCents, recurring: { interval: 'month' }, product_data: { name: `Monthly gift to ${campaign.title}` } } },
+          { quantity: 1, price_data: { currency: 'nzd', unit_amount: fees.cardFeeCents, recurring: { interval: 'month' }, product_data: { name: 'Card processing fee' } } },
+        ],
+        subscription_data: { metadata: subMeta, description: `Monthly gift to ${campaign.title} on Good Cause` },
+        metadata: { ...subMeta, campaign_title: campaign.title },
+      });
+      return NextResponse.json({ url: subSession.url });
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',

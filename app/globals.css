@@ -149,3 +149,4 @@ a.guide-card:hover{border-color:var(--green)}
 .org-stats>div{flex:1 1 150px;border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff}
 .org-stats strong{display:block;font-size:26px}
 .org-stats span{color:var(--muted);font-size:14px}
+.frequency-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
